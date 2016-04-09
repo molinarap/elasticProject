@@ -6,7 +6,7 @@ var fs = require('fs');
 var d = new Date();
 d = d.toLocaleDateString();
 
-var path = './back_job/html/';
+var path = './store/html/';
 if (!fs.existsSync(path)) {
     fs.mkdirSync(path);
 } else {
@@ -30,13 +30,13 @@ if (!fs.existsSync(path)) {
 var download = function(name, url, i) {
     if (i === 0) {
 
-        var dir = './back_job/html/' + d;
+        var dir = './store/html/' + d;
 
         if (!fs.existsSync(dir)) {
             
             fs.mkdirSync(dir);
 
-            var result_dir = './back_job/html/' + d + '/' + name;
+            var result_dir = './store/html/' + d + '/' + name;
             if (!fs.existsSync(result_dir)) {
                 fs.mkdirSync(result_dir);
             }
@@ -48,7 +48,7 @@ var download = function(name, url, i) {
         uri: url,
     }, function(error, response, body) {
 
-        fs.writeFile('./back_job/html/' + d + '/' + name + '/' + name + '_page' + i + '.html', body, function(err) {
+        fs.writeFile('./store/html/' + d + '/' + name + '/' + name + '_page' + i + '.html', body, function(err) {
             if (err) {
                 return console.log(err);
             }
@@ -61,7 +61,7 @@ var download = function(name, url, i) {
 var createFileHTML = function() {
     var getFileUrl = new Promise(
         function(resolve, reject) {
-            var file = './back_job/url/2016-04-09.json'
+            var file = './store/url/2016-04-09.json'
             jsonfile.readFile(file, function(err, obj) {
                 var urlObj = obj;
                 console.dir(urlObj);

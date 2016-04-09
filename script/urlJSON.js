@@ -7,7 +7,7 @@ var fs = require('fs');
 var d = new Date();
 d = d.toLocaleDateString();
 
-var path = './back_job/url/';
+var path = './store/url/';
 if (!fs.existsSync(path)) {
     fs.mkdirSync(path);
 } else {
@@ -47,7 +47,7 @@ var writeFileUrl = function(word) {
 
     getBingUrl.then(
             function(result) {
-                var file = './back_job/url/' + d + '.json'
+                var file = './store/url/' + d + '.json'
                 jsonfile.writeFile(file, result, function(err) {
                     if (err) {
                         console.error('ERROR: ', err);
