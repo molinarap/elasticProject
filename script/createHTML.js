@@ -85,7 +85,6 @@ var createFileHTML = function() {
             function(reason) {
                 console.log('Handle rejected promise (' + reason + ') here.');
             });
-
 };
 
 createFileHTML();

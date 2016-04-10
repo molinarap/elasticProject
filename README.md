@@ -6,7 +6,21 @@
 - npm start || node app.js
 
 
-**Script in Project**
+**Script Parser**
 
 - node script/urlJSON.js
 - node script/createHTML.js
+
+
+**Script creazione struttura**
+
+- storage
+	|- [today date]
+		|- elastic
+			|- [name].json
+		|- html
+			|- [name].json
+		|- url
+			|- [name].json
+		|- url-html
+			|- [name].json
