@@ -6,44 +6,29 @@ var fs = require('fs');
 var d = new Date();
 d = d.toLocaleDateString();
 
-var path = './../storage/html/';
-if (!fs.existsSync(path)) {
-    fs.mkdirSync(path);
-} else {
-    var deleteFolderRecursive = function(path) {
-        if (fs.existsSync(path)) {
-            fs.readdirSync(path).forEach(function(file, index) {
-                var curPath = path + "/" + file;
-                if (fs.lstatSync(curPath).isDirectory()) { // recurse
-                    deleteFolderRecursive(curPath);
-                } else { // delete file
-                    fs.unlinkSync(curPath);
-                }
-            });
-            fs.rmdirSync(path);
-        }
-    };
-}
+var createFolder = function(path) {
+    if (fs.existsSync(path)) {
+        deleteFolderRecursive(path);
+        console.log('--------------------------------------------');
+    }
+    console.log('create directory ---> ', parent_dir);
+    fs.mkdirSync(parent_dir);
+    createOtherDir();
+};
 
 // Utility function that downloads a URL and invokes
 // callback with the data.
 var download = function(name, url, i) {
     if (i === 0) {
-
-        var dir = './../storage/html/' + d;
-
-        if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir);
-            var result_dir = './../storage/html/' + d + '/' + name;
-            if (!fs.existsSync(result_dir)) {
-                fs.mkdirSync(result_dir);
-            }
+        var result_dir = './../storage/' + d + '/html/' + name;
+        if (!fs.existsSync(result_dir)) {
+            fs.mkdirSync(result_dir);
         }
     }
     request({
         uri: url,
     }, function(error, response, body) {
-        fs.writeFile('./../storage/html/' + d + '/' + name + '/' + name + '_page' + i + '.html', body, function(err) {
+        fs.writeFile('./../storage/' + d + '/html/' + name + '/' + name + '_page' + i + '.html', body, function(err) {
             if (err) {
                 return console.log(err);
             } else {
@@ -56,7 +41,7 @@ var download = function(name, url, i) {
 var createFileHTML = function() {
     var getFileUrl = new Promise(
         function(resolve, reject) {
-            var path = './../storage/url/' + d + '/';
+            var path = './../storage/' + d + '/url/';
             fs.readdir(path, function(err, items) {
                 console.log('items - ', items);
                 for (var i = 0; i < items.length; i++) {

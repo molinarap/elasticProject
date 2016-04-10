@@ -6,28 +6,9 @@ var fs = require('fs');
 var d = new Date();
 d = d.toLocaleDateString();
 
-var path = './../storage/url-html/';
-if (!fs.existsSync(path)) {
-    fs.mkdirSync(path);
-} else {
-    var deleteFolderRecursive = function(path) {
-        if (fs.existsSync(path)) {
-            fs.readdirSync(path).forEach(function(file, index) {
-                var curPath = path + "/" + file;
-                if (fs.lstatSync(curPath).isDirectory()) {
-                    deleteFolderRecursive(curPath);
-                } else {
-                    fs.unlinkSync(curPath);
-                }
-            });
-            fs.rmdirSync(path);
-        }
-    };
-}
-
 // torna un array di file in /storage/html/[data]/[nome]/
 var getListFileHtml = new Promise(function(resolve, reject) {
-    var path = './../storage/html/' + d + '/';
+    var path = './../storage/' + d + '/html/';
     // leggo tutte le cartelle in /storage/html/[data]/
     fs.readdir(path, function(err, items1) {
         for (var i = 0; i < items1.length; i++) {
@@ -89,13 +70,13 @@ var createJsonHtml = function(listHtml) {
 
 // scrive il JSON su disco
 var writeFileJsonHtml = function(jsonHTML) {
-    var dir = './../storage/url-html/' + d;
+    var dir = './../storage/' + d + '/url-html/';
 
     if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir);
     }
 
-    var file = './../storage/url-html/' + d + '/' + jsonHTML.name + '.json';
+    var file = './../storage/' + d + '/url-html/' + jsonHTML.name + '.json';
     jsonfile.writeFile(file, jsonHTML, function(err) {
         if (err) {
             console.error('ERROR: ', err);

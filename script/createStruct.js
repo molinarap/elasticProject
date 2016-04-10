@@ -8,7 +8,7 @@ d = d.toLocaleDateString();
 
 var parent_dir = './../storage/' + d + '/';
 var paths = [
-    'elatic/',
+    'elastic/',
     'html/',
     'url/',
     'url-html/',

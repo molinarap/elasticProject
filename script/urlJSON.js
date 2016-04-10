@@ -7,25 +7,6 @@ var fs = require('fs');
 var d = new Date();
 d = d.toLocaleDateString();
 
-var path = './../storage/url/';
-if (!fs.existsSync(path)) {
-    fs.mkdirSync(path);
-} else {
-    var deleteFolderRecursive = function(path) {
-        if (fs.existsSync(path)) {
-            fs.readdirSync(path).forEach(function(file, index) {
-                var curPath = path + "/" + file;
-                if (fs.lstatSync(curPath).isDirectory()) { // recurse
-                    deleteFolderRecursive(curPath);
-                } else { // delete file
-                    fs.unlinkSync(curPath);
-                }
-            });
-            fs.rmdirSync(path);
-        }
-    };
-}
-
 var getFilePizza = new Promise(
     function(resolve, reject) {
         var file = './../storage/pizza_men.json'
@@ -65,13 +46,13 @@ var getBingUrl = function(word) {
 };
 
 var writeFileUrl = function(JSONPizzaioli) {
-    var dir = './../storage/url/' + d;
+    var dir = './../storage/' + d + '/url/';
 
     if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir);
     }
 
-    var file = './../storage/url/' + d + '/' + JSONPizzaioli.name + '.json';
+    var file = './../storage/' + d + '/url/' + JSONPizzaioli.name + '.json';
     jsonfile.writeFile(file, JSONPizzaioli, function(err) {
         if (err) {
             console.error('ERROR: ', err);
