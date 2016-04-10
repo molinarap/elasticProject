@@ -6,7 +6,7 @@ var fs = require('fs');
 var d = new Date();
 d = d.toLocaleDateString();
 
-var path = './store/html/';
+var path = './../storage/html/';
 if (!fs.existsSync(path)) {
     fs.mkdirSync(path);
 } else {
@@ -30,30 +30,25 @@ if (!fs.existsSync(path)) {
 var download = function(name, url, i) {
     if (i === 0) {
 
-        var dir = './store/html/' + d;
+        var dir = './../storage/html/' + d;
 
         if (!fs.existsSync(dir)) {
-            
             fs.mkdirSync(dir);
-
-            var result_dir = './store/html/' + d + '/' + name;
+            var result_dir = './../storage/html/' + d + '/' + name;
             if (!fs.existsSync(result_dir)) {
                 fs.mkdirSync(result_dir);
             }
         }
-
-
     }
     request({
         uri: url,
     }, function(error, response, body) {
-
-        fs.writeFile('./store/html/' + d + '/' + name + '/' + name + '_page' + i + '.html', body, function(err) {
+        fs.writeFile('./../storage/html/' + d + '/' + name + '/' + name + '_page' + i + '.html', body, function(err) {
             if (err) {
                 return console.log(err);
+            } else {
+                console.log("The file " + i + " was saved!");
             }
-
-            console.log("The file was saved!");
         });
     });
 };
@@ -61,22 +56,29 @@ var download = function(name, url, i) {
 var createFileHTML = function() {
     var getFileUrl = new Promise(
         function(resolve, reject) {
-            var file = './store/url/2016-04-09.json'
-            jsonfile.readFile(file, function(err, obj) {
-                var urlObj = obj;
-                console.dir(urlObj);
-                resolve(urlObj);
+            var path = './../storage/url/' + d + '/';
+            fs.readdir(path, function(err, items) {
+                console.log('items - ', items);
+                for (var i = 0; i < items.length; i++) {
+                    // console.log('items - ', items[i]);
+                    var filePath = path + items[i];
+                    jsonfile.readFile(filePath, function(err, obj) {
+                        var urlObj = obj;
+                        // console.dir('urlObj - ', urlObj);
+                        resolve(urlObj);
+                    });
+                }
             });
         }
     );
 
     getFileUrl.then(
             function(result) {
-                console.log(result);
+                //console.log(result);
                 var name = result.name;
-                var siteUrl = result.siteUrl;
-                for (var i = 0; i < siteUrl.length; i++) {
-                    download(name, siteUrl[i], i);
+                var web = result.web;
+                for (var i = 0; i < web.length; i++) {
+                    download(name, web[i].url, i);
                 }
             })
         .catch(
