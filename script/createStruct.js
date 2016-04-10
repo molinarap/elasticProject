@@ -45,6 +45,8 @@ var createOtherDir = function() {
 var createFolder = function() {
     if (fs.existsSync(parent_dir)) {
         deleteFolderRecursive(parent_dir);
+        console.log('--------------------------------------------');
+
     }
     console.log('create directory ---> ', parent_dir);
     fs.mkdirSync(parent_dir);
