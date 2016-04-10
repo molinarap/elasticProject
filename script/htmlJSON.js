@@ -57,13 +57,14 @@ var readFileHtml = function(filePath, fileHtml) {
 
 var createJsonHtml = function(listHtml) {
     return new Promise(function(resolve, reject) {
-        var allHtml = {
-            'content': []
+        var all = {
+            'site': []
         };
-        for (var i = 0; i < 3; i++) {
+        for (var i = 0; i < listHtml.items.length; i++) {
+            var allHtml = {};
             var filePath = listHtml.path + listHtml.items[i];
-            allHtml.path = filePath;
-            allHtml.name = listHtml.name;
+            all.path = filePath;
+            all.name = listHtml.name;
             readFileHtml(filePath, listHtml.items[i])
                 .then(function(results) {
                     //allHtml.content.push(results);
@@ -75,12 +76,13 @@ var createJsonHtml = function(listHtml) {
                             htmlString = htmlString + results[j];
                         }
                     }
-                    allHtml.content.push(htmlString);
+                    allHtml.content = htmlString;
+                    all.site.push(allHtml);
                     //console.log('allHtml: ', allHtml);
                 });
 
         }
-        resolve(allHtml);
+        resolve(all);
     });
 };
 

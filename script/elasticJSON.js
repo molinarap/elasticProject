@@ -58,12 +58,17 @@ var createElasticJson = function(listHtml) {
     return new Promise(function(resolve, reject) {
         for (var i = 0; i < 1; i++) {
             var filePath = listHtml.path + listHtml.items[i];
-            console.log('filePath', filePath);
             readFileHtml(filePath, listHtml.items[i])
                 .then(function(results) {
-                    console.log('results', results);
+                    var doc = '';
+                    for (var j = 0; j < results.site.length; j++) {
+                        var index = '{ "index": { "_id": "' + j + '" } }\n';
+                        var site = JSON.stringify(results.site[i]);
+                        var allLine = index + site + '\n';
+                        doc = doc + allLine;
+                    }
                     fs.open('./../storage/elastic/2016-04-10/prova.json', 'a', 666, function(e, id) {
-                        fs.write(id, '{ "index": { "_id": "' + i + '" } }\na\n', 'utf8', function() {
+                        fs.write(id, doc, 'utf8', function() {
                             fs.close(id, function() {
                                 console.log('file is updated');
                             });
