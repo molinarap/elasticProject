@@ -15,18 +15,18 @@ var paths = [
 ];
 
 
-var deleteFolderRecursive = function(parent_dir) {
-    console.log('delete directory ---> ', parent_dir);
-    if (fs.existsSync(parent_dir)) {
-        fs.readdirSync(parent_dir).forEach(function(file, index) {
-            var curPath = parent_dir + file;
+var deleteFolderRecursive = function(path) {
+    console.log('delete directory ---> ', path);
+    if (fs.existsSync(path)) {
+        fs.readdirSync(path).forEach(function(file, index) {
+            var curPath = path + '/' + file;
             if (fs.lstatSync(curPath).isDirectory()) { // recurse
                 deleteFolderRecursive(curPath);
             } else { // delete file
                 fs.unlinkSync(curPath);
             }
         });
-        fs.rmdirSync(parent_dir);
+        fs.rmdirSync(path);
     }
 };
 
