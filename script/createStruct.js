@@ -1,12 +1,16 @@
-// http://www.pizzanapoletana.org/albo_pizzaioli_show.php?naz=Elenco
-
 var Bing = require('node-bing-api')({ accKey: "Avz6XU0BwrFDxpOClR75ahxB7kKyZ8zO8ngbpBhPeVQ" });
 var fs = require('fs');
 
 var d = new Date();
 d = d.toLocaleDateString();
 
+if (process.env.urlDir) {
+    var urlDir = process.env.urlDir;
+}
+
+// ogni giorno viene creata una nuova dir per immagazzinare i dati
 var parent_dir = './../storage/' + d + '/';
+// sottodirectory per salvataggio dei dati
 var paths = [
     'elastic/',
     'html/',
@@ -15,7 +19,14 @@ var paths = [
 ];
 
 
+// cancella in maniera ricorsiva una directory e tutto il suo contenuto
 var deleteFolderRecursive = function(path) {
+    // WTF?!?!?! ---> DA PERFEZIONARE
+    // la cartella url contiene un file creato tramite richiesta a Bing
+    // essendo le richieste a Bing limitate conviene eliminarla solo se necessario
+    /*if (urlDir) {
+        paths.push('url/');
+    }*/
     console.log('delete directory ---> ', path);
     if (fs.existsSync(path)) {
         fs.readdirSync(path).forEach(function(file, index) {
@@ -30,6 +41,7 @@ var deleteFolderRecursive = function(path) {
     }
 };
 
+// crea le sottodirectory con dello storage nella cartella versionata 
 var createOtherDir = function() {
     for (var i = 0; i < paths.length; i++) {
         var completePath = parent_dir + paths[i];
@@ -42,14 +54,15 @@ var createOtherDir = function() {
     }
 }
 
+// crea la cartella versionata(giorno per giorno)
 var createFolder = function() {
     if (fs.existsSync(parent_dir)) {
         deleteFolderRecursive(parent_dir);
         console.log('--------------------------------------------');
-
     }
     console.log('create directory ---> ', parent_dir);
     fs.mkdirSync(parent_dir);
+    // eseguo funzione che crea sottodirectory
     createOtherDir();
 
 };
