@@ -1,77 +1,86 @@
 // http://www.pizzanapoletana.org/albo_pizzaioli_show.php?naz=Elenco
-
-var Bing = require('node-bing-api')({ accKey: "Avz6XU0BwrFDxpOClR75ahxB7kKyZ8zO8ngbpBhPeVQ" });
+// dato un JSON di nomi tramite le API di Bing vengono
+// estretti tutti gli url riferiti a quel nome trovati
+// da Bing
+var Bing = require('node-bing-api')({ accKey: "L45X7080j4f+ZNhEuGnEz9xDBQtI8X3fdRdMfyjViD0" });
 var jsonfile = require('jsonfile');
 var fs = require('fs');
 
 var d = new Date();
 d = d.toLocaleDateString();
 
-var getFilePizza = new Promise(
-    function(resolve, reject) {
-        var file = './../storage/pizza_men.json'
-        jsonfile.readFile(file, function(err, obj) {
-            var pizza_men = obj;
-            resolve(pizza_men);
-        });
-    }
-);
+// leggo file json e lo salvo in una variabile
+// quindi ho un json con tutti i nomi
+var getFilePizza = new Promise(function(resolve, reject) {
+    var file = './../storage/pizza_men.json';
+    jsonfile.readFile(file, function(err, obj) {
+        if (err) {
+            reject(err);
+        } else {
+            resolve(obj);
+        }
+    });
+});
 
+// scrive un file json con contenuto l'oggetto passato alla funzione
+var writeFileUrl = function(info) {
+    var file = './../storage/' + d + '/url/' + info.name + '.json';
+    jsonfile.writeFile(file, info, function(err) {
+        if (err) {
+            console.error('ERROR: ', err);
+        } else {
+            console.log('Il file è stato creato');
+        }
+    });
+};
+
+
+// dato un nome esegue una ricerca tramite le API Bing
+// e ritorna un oggetto con tutti gli url ritornati dalla ricerca
+// che scrive tramite un altre funzione su dei file json
 var getBingUrl = function(word) {
-    return new Promise(function(resolve, reject) {
-        // console.log('getBingUrl');
-        // console.log('getBingUrlSearch');
-        Bing.web(word, {
-            skip: 5, // Skip first 3 results
-            options: ['DisableLocationDetection', 'EnableHighlighting']
-        }, function(error, res, body) {
-            // console.log(body.d.results);
+    console.log('INZIO RICERCA --------------> ', word);
+    Bing.web(word, {
+        skip: 5, // Skip first 3 results
+        options: ['DisableLocationDetection', 'EnableHighlighting']
+    }, function(error, res, body) {
+        if (error) {
+            console.error('API BING ERROR --->', error);
+        } else {
             var url = {
                 'name': word,
                 'web': []
             };
+            //for (var i = 0; i < body.d.results.length; i++) {
             for (var i = 0; i < body.d.results.length; i++) {
+                var obj = body.d.results[i];
                 var web = {
-                    'title': body.d.results[i].Title,
-                    'description': body.d.results[i].Description,
-                    'url': body.d.results[i].Url
-                }
+                    'title': obj.Title,
+                    'description': obj.Description,
+                    'url': obj.Url
+                };
                 url.web.push(web);
+                writeFileUrl(url);
             }
-            console.log(word);
-            resolve(url);
-        })
-
+            console.log('FINE RICERCA --------------> ', url.name);
+        }
     });
 };
 
-var writeFileUrl = function(JSONPizzaioli) {
-    var dir = './../storage/' + d + '/url/';
-
-    if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir);
-    }
-
-    var file = './../storage/' + d + '/url/' + JSONPizzaioli.name + '.json';
-    jsonfile.writeFile(file, JSONPizzaioli, function(err) {
-        if (err) {
-            console.error('ERROR: ', err);
-        }
-    })
-
-}
 
 var all = function() {
     getFilePizza
-        .then(function(arrayPizzaioli) {
-            // console.log('arrayPizzaioli: ', arrayPizzaioli.pizza_men[1]);
-            return getBingUrl(arrayPizzaioli.pizza_men[1]);
-        })
-        .then(function(JSONPizzaioli) {
-            // console.log('urlPizzaioli: ', urlPizzaioli);
+        .then(function(array) {
+                console.log('Array pronto per essere usato');
+                var a = array.pizza_men;
+                for (var i = 0; i < a.length; i++) {
+                    getBingUrl(a[i]);
+                }
+            },
+            function(error) {
+                console.error('Non sono riuscito ad estrarre l\'array');
+            });
 
-            writeFileUrl(JSONPizzaioli);
-        });
 };
 
 all();
