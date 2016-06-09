@@ -38,31 +38,34 @@ var writeFileUrl = function(info) {
 // dato un nome esegue una ricerca tramite le API Bing
 // e ritorna un oggetto con tutti gli url ritornati dalla ricerca
 // che scrive tramite un altre funzione su dei file json
-var getBingUrl = function(word) {
+var getBingUrl = function(word, n, s) {
     console.log('INZIO RICERCA --------------> ', word);
     Bing.web(word, {
-        skip: 5, // Skip first 3 results
+        top: 50, // Skip first 3 results
+        skip: 50 * s, // Skip first 3 results
         options: ['DisableLocationDetection', 'EnableHighlighting']
     }, function(error, res, body) {
         if (error) {
             console.error('API BING ERROR --->', error);
         } else {
-            var url = {
-                'name': word,
-                'web': []
-            };
-            //for (var i = 0; i < body.d.results.length; i++) {
-            for (var i = 0; i < body.d.results.length; i++) {
+            for (var i = body.d.results.length - 1; i >= 0; i--) {
                 var obj = body.d.results[i];
                 var web = {
                     'title': obj.Title,
                     'description': obj.Description,
                     'url': obj.Url
                 };
-                url.web.push(web);
-                writeFileUrl(url);
+                n.web.push(web);
+                if (i === 0) {
+                    if (s !== 0) {
+                        getBingUrl(word, n, s - 1);
+                    } else {
+                        console.log('FINE RICERCA --------------> ', n.name);
+                        writeFileUrl(n);
+                    }
+                }
             }
-            console.log('FINE RICERCA --------------> ', url.name);
+
         }
     });
 };
@@ -73,8 +76,13 @@ var all = function() {
         .then(function(array) {
                 console.log('Array pronto per essere usato');
                 var a = array.pizza_men;
-                for (var i = 0; i < a.length; i++) {
-                    getBingUrl(a[i]);
+                // for (var i = 0; i < a.length; i++) {
+                for (var i = 0; i < 1; i++) {
+                    var n = {
+                        'name': a[i],
+                        'web': []
+                    };
+                    getBingUrl(a[i], n, 1);
                 }
             },
             function(error) {
