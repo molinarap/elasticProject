@@ -84,9 +84,10 @@ var createFileHTML = function() {
             //console.dir(result1[0]);
             var name = result1[0].name;
             var web = result1[0].web;
-            for (var i = 0; i < web.length; i++) {
+            for (var i = 0; i < web.length-1; i++) {
                 download(name, web[i], i);
             }
+            return console.log('FINITOOOOOOOOO');
         }, function(error1) {
             console.log('ERROR -----------> ', error);
         });
