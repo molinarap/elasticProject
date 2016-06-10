@@ -41,7 +41,7 @@ var deleteFolderRecursive = function(path) {
     }
 };
 
-// crea le sottodirectory con dello storage nella cartella versionata 
+// crea le sottodirectory con dello storage nella cartella versionata
 var createOtherDir = function() {
     for (var i = 0; i < paths.length; i++) {
         var completePath = parent_dir + paths[i];

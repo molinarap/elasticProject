@@ -11,21 +11,23 @@ var path = './../storage/' + d + '/html/';
 var getListFileHtml = function() {
     return new Promise(function(resolve, reject) {
         // leggo tutte le cartelle in /storage/[data]/html/
-        console.error('path: ', path);
         fs.readdir(path, function(err, items1) {
-            console.error('items1: ', items1);
-            for (var i = 0; i < items1.length; i++) {
-                //per ogni cartella in /storage/[data]/html/
-                var filePath = path + items1[i] + '/';
-                var allHtml = {
-                    'name': items1[i],
-                    'path': filePath
-                };
-                // leggo tutte le cartelle in /storage/[data]/html/[nome]/
-                fs.readdir(filePath, function(err, items2) {
-                    allHtml.items = items2;
-                    resolve(allHtml);
-                });
+            if (err) {
+                reject(err);
+            } else {
+                for (var i = 0; i < items1.length; i++) {
+                    //per ogni cartella in /storage/[data]/html/
+                    var filePath = path + items1[i] + '/';
+                    var allHtml = {
+                        'name': items1[i],
+                        'path': filePath
+                    };
+                    // leggo tutte le cartelle in /storage/[data]/html/[nome]/
+                    fs.readdir(filePath, function(err, items2) {
+                        allHtml.items = items2;
+                        resolve(allHtml);
+                    });
+                }
             }
         });
     });
@@ -75,7 +77,6 @@ var extractInfo = function(s) {
 var createJsonHtml = function(pathPage, items, a, i) {
     var allHtml = {};
     var filePath = pathPage + items[i];
-    console.log('filePath ------------>', filePath);
     readFileHtml(filePath)
         .then(function(results) {
             concatString(results)

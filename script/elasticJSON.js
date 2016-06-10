@@ -6,7 +6,7 @@ var fs = require('fs');
 var d = new Date();
 d = d.toLocaleDateString();
 var path = './../storage/' + d + '/url-html/';
-var elasticPath = './../storage/' + d + '/elastic/elastic_'+d+'.json';
+var elasticPath = './../storage/' + d + '/elastic/elastic_' + d + '.json';
 
 // torna un array di file in /storage/[data]/html/[nome]/
 var getListFileJson = function(listHtml) {
@@ -83,13 +83,9 @@ var writeFileJsonHtml = function() {
 
 };
 
-var all = function() {
-    Promise
-        .all([writeFileJsonHtml(), getListFileJson()])
-        .then(function(value) {
-            console.log('value[1]', value[1]);
-            return createElasticJson(value[1]);
-        });
-};
-
-all();
+Promise
+    .all([writeFileJsonHtml(), getListFileJson()])
+    .then(function(value) {
+        console.log('value[1]', value[1]);
+        return createElasticJson(value[1]);
+    });

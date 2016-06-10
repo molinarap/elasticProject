@@ -33,16 +33,18 @@ var download = function(name, web, i) {
     });
 };
 
-var readAllFiles = new Promise(
-    function(resolve, reject) {
-        fs.readdir(path, function(err, items) {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(items);
-            }
+var readAllFiles = function() {
+    return new Promise(
+        function(resolve, reject) {
+            fs.readdir(path, function(err, items) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(items);
+                }
+            });
         });
-    });
+};
 
 var getFileUrl = function(items) {
     return new Promise(
@@ -72,25 +74,22 @@ var getFileUrl = function(items) {
 };
 
 
-var createFileHTML = function() {
-    readAllFiles
-        .then(function(result) {
-            console.dir('n° items trovati -----> ' + result.length);
-            return getFileUrl(result);
-        }, function(error) {
-            console.log('ERROR -----------> ', error);
-        })
-        .then(function(result1) {
-            //console.dir(result1[0]);
-            var name = result1[0].name;
-            var web = result1[0].web;
-            for (var i = 0; i < web.length - 1; i++) {
-                download(name, web[i], i);
-            }
-            return console.log('FINITOOOOOOOOO');
-        }, function(error1) {
-            console.log('ERROR -----------> ', error);
-        });
-};
 
-createFileHTML();
+readAllFiles()
+    .then(function(result) {
+        console.dir('n° items trovati -----> ' + result.length);
+        return getFileUrl(result);
+    }, function(error) {
+        console.log('ERROR -----------> ', error);
+    })
+    .then(function(result1) {
+        //console.dir(result1[0]);
+        var name = result1[0].name;
+        var web = result1[0].web;
+        for (var i = 0; i < web.length - 1; i++) {
+            download(name, web[i], i);
+        }
+        return console.log('FINITOOOOOOOOO');
+    }, function(error1) {
+        console.log('ERROR -----------> ', error);
+    });

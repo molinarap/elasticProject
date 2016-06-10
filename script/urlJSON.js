@@ -9,18 +9,23 @@ var fs = require('fs');
 var d = new Date();
 d = d.toLocaleDateString();
 
+var input = process.env.INPUT;
+
 // leggo file json e lo salvo in una variabile
 // quindi ho un json con tutti i nomi
-var getFilePizza = new Promise(function(resolve, reject) {
-    var file = './../storage/pizza_men.json';
-    jsonfile.readFile(file, function(err, obj) {
-        if (err) {
-            reject(err);
-        } else {
-            resolve(obj);
-        }
+var getFilePizza = function() {
+    return new Promise(function(resolve, reject) {
+        console.log('FILE CARICATO ------>  ' + input);
+        var file = input;
+        jsonfile.readFile(file, function(err, obj) {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(obj);
+            }
+        });
     });
-});
+};
 
 // scrive un file json con contenuto l'oggetto passato alla funzione
 var writeFileUrl = function(info) {
@@ -71,25 +76,20 @@ var getBingUrl = function(word, n, s) {
 };
 
 
-var all = function() {
-    getFilePizza
-        .then(function(array) {
-                console.log('Array pronto per essere usato');
-                var a = array.pizza_men;
-                // for (var i = 0; i < a.length; i++) {
-                for (var i = 0; i < 1; i++) {
-                    var n = {
-                        'name': a[i],
-                        'web': []
-                    };
-                    // va fatto con il 6 per il progetto di AGIW
-                    getBingUrl(a[i], n, 1);
-                }
-            },
-            function(error) {
-                console.error('Non sono riuscito ad estrarre l\'array');
-            });
-
-};
-
-all();
+getFilePizza()
+    .then(function(array) {
+            console.log('AVVIO RICERCA...');
+            var list = array.names;
+            // for (var i = 0; i < list.length; i++) {
+            for (var i = 0; i < 1; i++) {
+                var n = {
+                    'name': list[i],
+                    'web': []
+                };
+                // per averne circa 300 va messo 6
+                getBingUrl(list[i], n, 1);
+            }
+        },
+        function(error) {
+            console.log('INSERISCI IL PATH DEL FILE INPUT (json)');
+        });
