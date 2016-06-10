@@ -34,7 +34,6 @@ var p = {
     "name": "Abbate Vincenzo",
     "allPages": [{
         "content": "sito",
-        "url": "www.url.it"
     }]
 };
 
@@ -49,7 +48,7 @@ var createElasticJson = function(filePath) {
                     for (var j = results.allPages.length - 1; j >= 0; j--) {
                         var index = '{ "index": { "_id": "' + j + '" } }\n';
                         var site = JSON.stringify(results.allPages[j]);
-                        console.log(site.substring(0, 300));
+                        //console.log(site.substring(0, 300));
                         //console.log('j ------>' + j);
                         var allLine = index + site + '\n';
                         doc = doc + allLine;

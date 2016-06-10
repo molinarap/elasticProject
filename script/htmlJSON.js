@@ -52,6 +52,26 @@ var concatString = function(array) {
     });
 };
 
+// <!--NAMEAbbate VincenzoNAME-->
+// <!--TITLEABBATE GIOVANNI VINCENZO - Grazzanise (CE)TITLE-->
+// <!--DESCRABBATE GIOVANNI VINCENZO - Scheda aziendale su Annunci Caserta.DESCR-->
+// <!--URLhttp://www.annuncicaserta.it/azienda.asp?a=456146URL-->
+var extractInfo = function(s) {
+    var a = s.split('<!--HTML-->');
+    var allInfo = a[1];
+    var nameTemp = allInfo.split('NAME');
+    var titleTemp = allInfo.split('TITLE');
+    var descrTemp = allInfo.split('DESCR');
+    var urlTemp = allInfo.split('URL');
+    var o = {
+        "name": nameTemp[1],
+        "title": titleTemp[1],
+        "descr": descrTemp[1],
+        "url": urlTemp[1]
+    };
+    return o;
+};
+
 var createJsonHtml = function(pathPage, items, a, i) {
     var allHtml = {};
     var filePath = pathPage + items[i];
@@ -60,6 +80,7 @@ var createJsonHtml = function(pathPage, items, a, i) {
         .then(function(results) {
             concatString(results)
                 .then(function(r) {
+                    allHtml = extractInfo(r);
                     allHtml.content = r;
                     a.allPages.push(allHtml);
                     if (i === 0) {
