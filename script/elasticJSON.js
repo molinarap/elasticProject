@@ -6,6 +6,7 @@ var fs = require('fs');
 var d = new Date();
 d = d.toLocaleDateString();
 var path = './../storage/' + d + '/url-html/';
+var elasticPath = './../storage/' + d + '/elastic/elastic_'+d+'.json';
 
 // torna un array di file in /storage/[data]/html/[nome]/
 var getListFileJson = function(listHtml) {
@@ -54,7 +55,6 @@ var createElasticJson = function(filePath) {
                         doc = doc + allLine;
                         if (j === 0) {
                             console.log('POSSIAMO SCRIVERE ORA!');
-                            var elasticPath = './../storage/' + d + '/elastic/prova.json';
                             fs.open(elasticPath, 'a', 666, function(e, id) {
                                 fs.write(id, doc, 'utf8', function() {
                                     fs.close(id, function() {
@@ -74,8 +74,7 @@ var createElasticJson = function(filePath) {
 
 // scrive il JSON su disco
 var writeFileJsonHtml = function() {
-    var file = './../storage/' + d + '/elastic/prova.json';
-    fs.writeFile(file, '', function(err) {
+    fs.writeFile(elasticPath, '', function(err) {
         if (err) {
             return console.log(err);
         }
