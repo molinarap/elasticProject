@@ -8,7 +8,7 @@ d = d.toLocaleDateString();
 
 var path = './../storage/' + d + '/url/';
 
-var download = function(name, url, i) {
+var download = function(name, web, i) {
     if (i === 0) {
         var result_dir = './../storage/' + d + '/html/' + name;
         if (!fs.existsSync(result_dir)) {
@@ -16,9 +16,14 @@ var download = function(name, url, i) {
         }
     }
     request({
-        uri: url,
+        uri: web.url,
     }, function(error, response, body) {
-        fs.writeFile('./../storage/' + d + '/html/' + name + '/' + name + '_page' + i + '.html', body, function(err) {
+        var commentName = '<!--' + name + '-->\n';
+        var commentTitle = '<!--' + web.title + '-->\n';
+        var commentDescription = '<!--' + web.description + '-->\n';
+        var commentUrl = '<!--' + web.url + '-->\n';
+        var allInfo = commentName + commentTitle + commentDescription + commentUrl;
+        fs.writeFile('./../storage/' + d + '/html/' + name + '/' + name + '_page' + i + '.html', allInfo + body, function(err) {
             if (err) {
                 return console.log(err);
             } else {
@@ -76,11 +81,11 @@ var createFileHTML = function() {
             console.log('ERROR -----------> ', error);
         })
         .then(function(result1) {
-            console.dir(result1[0]);
+            //console.dir(result1[0]);
             var name = result1[0].name;
             var web = result1[0].web;
-            for (var i = 0; i < web.length; i++) {
-                download(name, web[i].url, i);
+            for (var i = 0; i < 1; i++) {
+                download(name, web[i], i);
             }
         }, function(error1) {
             console.log('ERROR -----------> ', error);
