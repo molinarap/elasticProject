@@ -82,6 +82,7 @@ var all = function() {
                         'name': a[i],
                         'web': []
                     };
+                    // va fatto con il 6 per il progetto di AGIW
                     getBingUrl(a[i], n, 1);
                 }
             },

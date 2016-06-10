@@ -6,32 +6,30 @@ var fs = require('fs');
 var d = new Date();
 d = d.toLocaleDateString();
 
+var path = './../storage/' + d + '/url/';
 
-// Utility function that downloads a URL and invokes
-// callback with the data.
-// var download = function(name, url, i) {
-//     if (i === 0) {
-//         var result_dir = './../storage/' + d + '/html/' + name;
-//         if (!fs.existsSync(result_dir)) {
-//             fs.mkdirSync(result_dir);
-//         }
-//     }
-//     request({
-//         uri: url,
-//     }, function(error, response, body) {
-//         fs.writeFile('./../storage/' + d + '/html/' + name + '/' + name + '_page' + i + '.html', body, function(err) {
-//             if (err) {
-//                 return console.log(err);
-//             } else {
-//                 console.log("The file " + i + " was saved!");
-//             }
-//         });
-//     });
-// };
+var download = function(name, url, i) {
+    if (i === 0) {
+        var result_dir = './../storage/' + d + '/html/' + name;
+        if (!fs.existsSync(result_dir)) {
+            fs.mkdirSync(result_dir);
+        }
+    }
+    request({
+        uri: url,
+    }, function(error, response, body) {
+        fs.writeFile('./../storage/' + d + '/html/' + name + '/' + name + '_page' + i + '.html', body, function(err) {
+            if (err) {
+                return console.log(err);
+            } else {
+                console.log("The file " + i + " was saved!");
+            }
+        });
+    });
+};
 
 var readAllFiles = new Promise(
     function(resolve, reject) {
-        var path = './../storage/' + d + '/url/';
         fs.readdir(path, function(err, items) {
             if (err) {
                 reject(err);
@@ -45,8 +43,9 @@ var getFileUrl = function(items) {
     return new Promise(
         function(resolve, reject) {
             var allLink = [];
-            var path = './../storage/' + d + '/url/';
-            for (var i = 0; i < items.length; i++) {
+            // for (var i = 0; i < items.length; i++) {
+            for (var i = 0; i < 1; i++) {
+                // salto i file nascosti
                 if (items[i].substring(0, 1) !== '.') {
                     var filePath = path + items[i];
                     // mmmmmm si interrompe il ciclo for
@@ -56,7 +55,8 @@ var getFileUrl = function(items) {
                             reject(err);
                         } else {
                             allLink.push(obj);
-                            if (i === items.length) {
+                            // if (i === items.length) {
+                            if (i === 1) {
                                 resolve(allLink);
                             }
                         }
@@ -76,22 +76,15 @@ var createFileHTML = function() {
             console.log('ERROR -----------> ', error);
         })
         .then(function(result1) {
-            console.dir(result1);
+            console.dir(result1[0]);
+            var name = result1[0].name;
+            var web = result1[0].web;
+            for (var i = 0; i < web.length; i++) {
+                download(name, web[i].url, i);
+            }
         }, function(error1) {
             console.log('ERROR -----------> ', error);
         });
-
-    // getFileUrl
-    //     .then(function(result) {
-    //         console.log('result', result.name);
-    //         var name = result.name;
-    //         var web = result.web;
-    //         for (var i = 0; i < web.length; i++) {
-    //             download(name, web[i].url, i);
-    //         }
-    //     }, function(error) {
-    //         console.log('ERROR -----------> ', error);
-    //     });
 };
 
 createFileHTML();
