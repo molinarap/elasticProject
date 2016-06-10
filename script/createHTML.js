@@ -18,10 +18,10 @@ var download = function(name, web, i) {
     request({
         uri: web.url,
     }, function(error, response, body) {
-        var commentName = '<!--' + name + '-->\n';
-        var commentTitle = '<!--' + web.title + '-->\n';
-        var commentDescription = '<!--' + web.description + '-->\n';
-        var commentUrl = '<!--' + web.url + '-->\n';
+        var commentName = '<!--NAME_' + name + '_NAME-->\n';
+        var commentTitle = '<!--TITLE_' + web.title + '_TITLE-->\n';
+        var commentDescription = '<!--DESCR_' + web.description + '_DESCR-->\n';
+        var commentUrl = '<!--URL_' + web.url + '_URL-->\n';
         var allInfo = commentName + commentTitle + commentDescription + commentUrl;
         fs.writeFile('./../storage/' + d + '/html/' + name + '/' + name + '_page' + i + '.html', allInfo + body, function(err) {
             if (err) {
@@ -84,7 +84,7 @@ var createFileHTML = function() {
             //console.dir(result1[0]);
             var name = result1[0].name;
             var web = result1[0].web;
-            for (var i = 0; i < 1; i++) {
+            for (var i = 0; i < web.length; i++) {
                 download(name, web[i], i);
             }
         }, function(error1) {
