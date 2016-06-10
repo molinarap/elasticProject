@@ -5,57 +5,67 @@ var fs = require('fs');
 
 var d = new Date();
 d = d.toLocaleDateString();
+var path = './../storage/' + d + '/url-html/';
 
-// torna un array di file in /storage/html/[data]/[nome]/
-var getListFileJson = new Promise(function(resolve, reject) {
-    var path = './../storage/' + d + '/url-html/';
-    // leggo tutte le cartelle in /storage/html/[data]/
-    fs.readdir(path, function(err, items1) {
-        for (var i = 0; i < items1.length; i++) {
-            //per ogni cartella in /storage/html/[data]/
-            var filePath = path + items1[i] + '/';
-            // leggo tutte le cartelle in /storage/html/[data]/[nome]/
-            var allHtml = {
-                'path': './../storage/' + d + '/url-html/',
-                'items': items1
-            };
-            resolve(allHtml);
-        }
-    });
-});
-
-var readFileHtml = function(filePath, fileHtml) {
+// torna un array di file in /storage/[data]/html/[nome]/
+var getListFileJson = function(listHtml) {
     return new Promise(function(resolve, reject) {
-        //per ogni file in /storage/html/[data]/[nome]/
-        var htmlPath = filePath;
-        // leggo leggo il file i in /storage/html/[data]/[nome]/
-        jsonfile.readFile(htmlPath, function(err, obj) {
+        // leggo tutte le cartelle in /storage/[data]/html/
+        fs.readdir(path, function(err, items1) {
+            for (var i = 0; i < items1.length; i++) {
+                //per ogni cartella in /storage/[data]/html/
+                var filePath = path + items1[i];
+                resolve(filePath);
+            }
+        });
+    });
+};
+
+var readFileHtml = function(filePath) {
+    return new Promise(function(resolve, reject) {
+        // leggo il file i in /storage/[data]/html/[nome]/
+        jsonfile.readFile(filePath, function(err, obj) {
             resolve(obj);
         });
     });
 };
 
-var createElasticJson = function(listHtml) {
+var p = {
+    "name": "Abbate Vincenzo",
+    "allPages": [{
+        "content": "sito",
+        "url": "www.url.it"
+    }]
+};
+
+var createElasticJson = function(filePath) {
     return new Promise(function(resolve, reject) {
+        // console.log("filePath", filePath);
         for (var i = 0; i < 1; i++) {
-            var filePath = listHtml.path + listHtml.items[i];
-            readFileHtml(filePath, listHtml.items[i])
+            readFileHtml(filePath)
                 .then(function(results) {
                     var doc = '';
-                    for (var j = 0; j < results.site.length; j++) {
+                    console.log('results.allPages.length ------>' + results.allPages.length);
+                    for (var j = results.allPages.length - 1; j >= 0; j--) {
                         var index = '{ "index": { "_id": "' + j + '" } }\n';
-                        var site = JSON.stringify(results.site[i]);
+                        var site = JSON.stringify(results.allPages[j]);
+                        console.log(site.substring(0, 300));
+                        //console.log('j ------>' + j);
                         var allLine = index + site + '\n';
                         doc = doc + allLine;
-                    }
-                    var path = './../storage/' + d + '/elastic/prova.json';
-                    fs.open(path, 'a', 666, function(e, id) {
-                        fs.write(id, doc, 'utf8', function() {
-                            fs.close(id, function() {
-                                console.log('file is updated');
+                        if (j === 0) {
+                            console.log('POSSIAMO SCRIVERE ORA!');
+                            var elasticPath = './../storage/' + d + '/elastic/prova.json';
+                            fs.open(elasticPath, 'a', 666, function(e, id) {
+                                fs.write(id, doc, 'utf8', function() {
+                                    fs.close(id, function() {
+                                        console.log('file is updated');
+                                    });
+                                });
                             });
-                        });
-                    });
+
+                        }
+                    }
                 });
         }
         resolve(allHtml);
@@ -64,12 +74,8 @@ var createElasticJson = function(listHtml) {
 
 
 // scrive il JSON su disco
-var writeFileJsonHtml = function(jsonHTML) {
-
-    var version = new Date();
-
+var writeFileJsonHtml = function() {
     var file = './../storage/' + d + '/elastic/prova.json';
-
     fs.writeFile(file, '', function(err) {
         if (err) {
             return console.log(err);
@@ -77,16 +83,14 @@ var writeFileJsonHtml = function(jsonHTML) {
         console.log("The file was saved!");
     });
 
-}
+};
 
 var all = function() {
-    writeFileJsonHtml();
-    getListFileJson
-        .then(function(results) {
-            //console.log('results: ', results);
-            return createElasticJson(results);
-        }).then(function(results2) {
-            console.log('results2: ', results2);
+    Promise
+        .all([writeFileJsonHtml(), getListFileJson()])
+        .then(function(value) {
+            console.log('value[1]', value[1]);
+            return createElasticJson(value[1]);
         });
 };
 
