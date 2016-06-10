@@ -11,6 +11,10 @@ d = d.toLocaleDateString();
 
 var input = process.env.INPUT;
 
+if (!input) {
+    input = './../storage/pizza_men.json';
+}
+
 // leggo file json e lo salvo in una variabile
 // quindi ho un json con tutti i nomi
 var getFilePizza = function() {
@@ -44,7 +48,7 @@ var writeFileUrl = function(info) {
 // e ritorna un oggetto con tutti gli url ritornati dalla ricerca
 // che scrive tramite un altre funzione su dei file json
 var getBingUrl = function(word, n, s) {
-    console.log('INZIO RICERCA --------------> ', word);
+    console.log('RICERCA --------------> ', word);
     Bing.web(word, {
         top: 50, // Skip first 3 results
         skip: 50 * s, // Skip first 3 results
