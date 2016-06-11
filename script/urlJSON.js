@@ -5,6 +5,7 @@
 var Bing = require('node-bing-api')({ accKey: "L45X7080j4f+ZNhEuGnEz9xDBQtI8X3fdRdMfyjViD0" });
 var jsonfile = require('jsonfile');
 var fs = require('fs');
+var Promise = require("bluebird");
 
 var d = new Date();
 d = d.toLocaleDateString();
@@ -79,21 +80,42 @@ var getBingUrl = function(word, n, s) {
     });
 };
 
-
 getFilePizza()
     .then(function(array) {
-            console.log('AVVIO RICERCA...');
             var list = array.names;
-            // for (var i = 0; i < list.length; i++) {
-            for (var i = 0; i < 1; i++) {
-                var n = {
-                    'name': list[i],
-                    'web': []
-                };
-                // per averne circa 300 va messo 6
-                getBingUrl(list[i], n, 1);
-            }
+            Promise.each(list, function(element, index) {
+                    console.log('AVVIO RICERCA...' + index);
+                    var n = {
+                        'name': element,
+                        'web': []
+                    };
+                    // per averne circa 300 va messo 6
+                    getBingUrl(element, n, 1);
+                })
+                .then(function(allItems) {
+                    console.dir(allItems);
+                });
         },
         function(error) {
             console.log('INSERISCI IL PATH DEL FILE INPUT (json)');
         });
+
+
+
+// getFilePizza()
+//     .then(function(array) {
+//             console.log('AVVIO RICERCA...');
+//             var list = array.names;
+//             // for (var i = 0; i < list.length; i++) {
+//             for (var i = 0; i < 1; i++) {
+//                 var n = {
+//                     'name': list[i],
+//                     'web': []
+//                 };
+//                 // per averne circa 300 va messo 6
+//                 getBingUrl(list[i], n, 1);
+//             }
+//         },
+//         function(error) {
+//             console.log('INSERISCI IL PATH DEL FILE INPUT (json)');
+//         });
