@@ -4,7 +4,6 @@ var fs = require('fs');
 var path = require('path');
 var Promise = require('bluebird');
 Promise.promisifyAll(fs);
-Promise.promisifyAll(request, { multiArgs: true });
 
 var d = new Date();
 d = d.toLocaleDateString();
