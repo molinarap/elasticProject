@@ -2,94 +2,105 @@ var jsonfile = require('jsonfile');
 var request = require("request");
 var util = require('util');
 var fs = require('fs');
+var path = require('path');
+var Promise = require('bluebird');
+Promise.promisifyAll(fs);
+Promise.promisifyAll(request, { multiArgs: true });
 
 var d = new Date();
 d = d.toLocaleDateString();
+var pathPrevDir = path.join('./../storage/', d, '/url/');
 
-var path = './../storage/' + d + '/url/';
+// leggo i file nella dir pathPrevDir
+// e ritorno un array di questi
+function readFiles() {
+    return fs.readdirAsync(pathPrevDir);
+}
+exports.readFiles = readFiles;
 
-var download = function(name, web, i) {
-    if (i === 0) {
-        var result_dir = './../storage/' + d + '/html/' + name;
-        if (!fs.existsSync(result_dir)) {
-            fs.mkdirSync(result_dir);
-        }
-    }
-    request({
-        uri: web.url,
-    }, function(error, response, body) {
-        var commentName = '<!--NAME' + name + 'NAME-->\n';
-        var commentTitle = '<!--TITLE' + web.title + 'TITLE-->\n';
-        var commentDescription = '<!--DESCR' + web.description + 'DESCR-->\n';
-        var commentUrl = '<!--URL' + web.url + 'URL-->\n<!--HTML-->\n';
-        var allInfo = commentName + commentTitle + commentDescription + commentUrl;
-        fs.writeFile('./../storage/' + d + '/html/' + name + '/' + name + '_page' + i + '.html', allInfo + body, function(err) {
-            if (err) {
-                return console.log(err);
+function download(web) {
+    return new Promise(function(resolve, reject) {
+        request({
+            url: web.url,
+            rejectUnauthorized: true,
+            strictSSL: false,
+            encoding: 'utf-8',
+            json: true
+        }, function(error, response, body) {
+            var infoPage = {
+                "name": web.name,
+                "title": web.title,
+                "description": web.description,
+                "url": web.url,
+            };
+            var infoPageSting = JSON.stringify(infoPage);
+            if (error) {
+                reject(console.log('ERROR FILE --------> ' + error + ' | ' + web.url));
             } else {
-                console.log("The file " + i + " was saved!");
+                if (response.statusCode === 200) {
+                    var allHml = '<!--INFO' + infoPageSting + 'INFO-->\n' + body;
+                    // var pathHtmlFile = path.join('./../storage/', d, '/html/', web.name, '/', web.name, '_page', web.page, '.html');
+                    var pathHtmlFile = './../storage/' + d + '/html/' + web.name + '/' + web.name + '_page' + web.page + '.html';
+                    resolve(console.log('WRITE FILE --------> ' + response.statusCode + ' | ' + pathHtmlFile));
+                    resolve(writeHTMLFile(web, allHml));
+                } else {
+                    reject(console.log('ERROR FILE --------> ' + response.statusCode + ' | ' + web.url));
+                }
             }
+            //return writeHTMLFile(web, allInfo);
         });
     });
-};
+}
+exports.download = download;
 
-var readAllFiles = function() {
-    return new Promise(
-        function(resolve, reject) {
-            fs.readdir(path, function(err, items) {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(items);
-                }
+function writeHTMLFile(web, data) {
+    var filePath = `./../storage/${d}/html/${web.name}/${web.name}_page-${web.page}.html`;
+    console.log(filePath)
+
+    // var pathHtmlFile = './../storage/' + d + '/html/' + web.name + '/' + web.name + '_page' + web.page + '.html';
+    return fs.writeFileSync(filePath, data);
+}
+exports.writeHTMLFile = writeHTMLFile;
+
+function createFolder(allPath) {
+    var onlyName = allPath.split('.json')[0];
+    var pathNextDir = path.join('./../storage/', d, '/html/', onlyName);
+    return fs.statAsync(pathNextDir).return(allPath)
+        .catch(err => fs.mkdirAsync(pathNextDir));
+}
+exports.createFolder = createFolder;
+
+function getFileUrl(filePath) {
+    var jsonFile = path.join(pathPrevDir, filePath);
+    return fs.readFileAsync(jsonFile, 'utf8')
+        .then(JSON.parse)
+        .then(jsonData => {
+            return jsonData.web.map(function(webObj, index) {
+                return {
+                    name: jsonData.name,
+                    page: index,
+                    url: webObj.url,
+                    description: webObj.description,
+                    title: webObj.title
+                };
             });
         });
-};
+}
+exports.getFileUrl = getFileUrl;
 
-var getFileUrl = function(items) {
-    return new Promise(
-        function(resolve, reject) {
-            var allLink = [];
-            // for (var i = 0; i < items.length; i++) {
-            for (var i = 0; i < 1; i++) {
-                // salto i file nascosti
-                if (items[i].substring(0, 1) !== '.') {
-                    var filePath = path + items[i];
-                    // mmmmmm si interrompe il ciclo for
-                    // quando entra in questa funzione
-                    jsonfile.readFile(filePath, function(err, obj) {
-                        if (err) {
-                            reject(err);
-                        } else {
-                            allLink.push(obj);
-                            // if (i === items.length) {
-                            if (i === 1) {
-                                resolve(allLink);
-                            }
-                        }
-                    });
-                }
-            }
-        });
-};
+function flatPromiseArray(nestedArray) {
+    return nestedArray.reduce(function(previousVal, currentVal) {
+        return previousVal.concat(currentVal);
+    }, []); // <= questo diventa previousVal alla prima iterazione
+}
+exports.flatPromiseArray = flatPromiseArray;
 
-
-
-readAllFiles()
-    .then(function(result) {
-        console.dir('n° items trovati -----> ' + result.length);
-        return getFileUrl(result);
-    }, function(error) {
-        console.log('ERROR -----------> ', error);
-    })
-    .then(function(result1) {
-        //console.dir(result1[0]);
-        var name = result1[0].name;
-        var web = result1[0].web;
-        for (var i = 0; i < web.length - 1; i++) {
-            download(name, web[i], i);
-        }
-        return console.log('FINITOOOOOOOOO');
-    }, function(error1) {
-        console.log('ERROR -----------> ', error);
+readFiles()
+    .map(dir => createFolder(dir))
+    .map(file => getFileUrl(file))
+    .then(flatPromiseArray)
+    // ho un array di oggetti web da cui devo scaricare l'HTML
+    .map(html => download(html))
+    .catch(err => {
+        console.error('ERROOOOOOOOOOOR ------->' + err);
     });
