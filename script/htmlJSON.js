@@ -1,6 +1,5 @@
 // http://www.pizzanapoletana.org/albo_pizzaioli_show.php?naz=Elenco
 
-var jsonfile = require('jsonfile');
 var fs = require('fs');
 
 var d = new Date();

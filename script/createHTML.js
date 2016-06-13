@@ -1,4 +1,3 @@
-var jsonfile = require('jsonfile');
 var request = require("request");
 var util = require('util');
 var fs = require('fs');
