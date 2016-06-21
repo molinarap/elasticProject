@@ -45,7 +45,7 @@ function elasticFormat(all) {
 exports.elasticFormat = elasticFormat;
 
 function writeJSONFile() {
-    console.log("scrivooooooooooooooooooooooooooooooooooo");
+    console.log("Scrivo il file Elastic per il bulk dei dati!");
     return fs.appendFile(elasticPath, doc);
 }
 exports.writeJSONFile = writeJSONFile;
