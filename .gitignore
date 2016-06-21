@@ -6,3 +6,4 @@ node_modules
 storage
 
 .vscode/launch.json
+query.js

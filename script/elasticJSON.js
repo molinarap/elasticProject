@@ -27,7 +27,6 @@ function readFiles(pathDir) {
 }
 exports.readFiles = readFiles;
 
-
 function flatPromiseArray(nestedArray) {
     return nestedArray.reduce(function(previousVal, currentVal) {
         return previousVal.concat(currentVal);
@@ -39,7 +38,7 @@ function elasticFormat(all) {
     var elasticData = JSON.parse(all);
     for (var i = elasticData.length - 1; i >= 0; i--) {
         index = index + 1;
-        doc = doc + '{ "index": { "_id": "' + index + '" } }\n' + JSON.stringify(elasticData[i]) + '\n';
+        doc = doc + '{ "index": { "_type":"people", "_id": "' + index + '" } }\n' + JSON.stringify(elasticData[i]) + '\n';
     }
 }
 exports.elasticFormat = elasticFormat;
