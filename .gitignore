@@ -4,3 +4,5 @@ node_modules
 
 # Store
 storage
+
+.vscode/launch.json

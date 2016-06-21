@@ -51,7 +51,7 @@ var writeFileUrl = function(info) {
 var getBingUrl = function(word, n, s) {
     console.log('RICERCA --------------> ', word);
     Bing.web(word, {
-        top: 50, // Skip first 3 results
+        top: 10, // Skip first 3 results
         skip: 50 * s, // Skip first 3 results
         options: ['DisableLocationDetection', 'EnableHighlighting']
     }, function(error, res, body) {
@@ -89,8 +89,8 @@ getFilePizza()
                         'name': element,
                         'web': []
                     };
-                    // per averne circa 300 va messo 6
-                    getBingUrl(element, n, 1);
+                    // per averne circa 600 va messo 6
+                    getBingUrl(element, n, 0);
                 })
                 .then(function(allItems) {
                     console.dir(allItems);

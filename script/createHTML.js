@@ -2,6 +2,7 @@ var request = require("request");
 var util = require('util');
 var fs = require('fs');
 var path = require('path');
+var chalk = require('chalk');
 var Promise = require('bluebird');
 Promise.promisifyAll(fs);
 
@@ -39,10 +40,10 @@ function download(web) {
                     var allHml = '<!--INFO' + infoPageSting + 'INFO-->\n' + body;
                     // var pathHtmlFile = path.join('./../storage/', d, '/html/', web.name, '/', web.name, '_page', web.page, '.html');
                     var pathHtmlFile = './../storage/' + d + '/html/' + web.name + '/' + web.name + '_page' + web.page + '.html';
-                    resolve(console.log('WRITE FILE --------> ' + response.statusCode + ' | ' + pathHtmlFile));
+                    resolve(console.log(chalk.blue('WRITE FILE --------> ' + response.statusCode + ' | ' + pathHtmlFile)));
                     resolve(writeHTMLFile(web, allHml));
                 } else {
-                    reject(console.log('ERROR FILE --------> ' + response.statusCode + ' | ' + web.url));
+                    reject(chalk.yellow(console.log('ERROR FILE --------> ' + response.statusCode + ' | ' + web.url)));
                 }
             }
             //return writeHTMLFile(web, allInfo);
@@ -53,8 +54,6 @@ exports.download = download;
 
 function writeHTMLFile(web, data) {
     var filePath = `./../storage/${d}/html/${web.name}/${web.name}_page-${web.page}.html`;
-    console.log(filePath)
-
     // var pathHtmlFile = './../storage/' + d + '/html/' + web.name + '/' + web.name + '_page' + web.page + '.html';
     return fs.writeFileSync(filePath, data);
 }
@@ -100,5 +99,5 @@ readFiles()
     // ho un array di oggetti web da cui devo scaricare l'HTML
     .map(html => download(html))
     .catch(err => {
-        console.error('ERROOOOOOOOOOOR ------->' + err);
+        chalk.red(console.error('ERROOOOOOOOOOOR ------->' + err));
     });

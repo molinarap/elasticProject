@@ -52,7 +52,7 @@ var createOtherDir = function() {
             deleteFolderRecursive(completePath);
         }
     }
-}
+};
 
 // crea la cartella versionata(giorno per giorno)
 var createFolder = function() {
