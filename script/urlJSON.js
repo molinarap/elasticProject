@@ -13,7 +13,7 @@ d = d.toLocaleDateString();
 var input = process.env.INPUT;
 
 if (!input) {
-    input = './../storage/pizza_men.json';
+    input = './../storage/names.json';
 }
 
 // leggo file json e lo salvo in una variabile
