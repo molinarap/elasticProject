@@ -1,11 +1,9 @@
-// http://www.pizzanapoletana.org/albo_pizzaioli_show.php?naz=Elenco
-// dato un JSON di nomi tramite le API di Bing vengono
-// estretti tutti gli url riferiti a quel nome trovati
-// da Bing
-var Bing = require('node-bing-api')({ accKey: "L45X7080j4f+ZNhEuGnEz9xDBQtI8X3fdRdMfyjViD0" });
+var Bing = require('node-bing-api')({ accKey: 'glv6KgfKGZgMcTBZ2/PWYYgaSuXwcjsvQskVjuRcPSE' });
 var jsonfile = require('jsonfile');
 var fs = require('fs');
-var Promise = require("bluebird");
+var path = require('path');
+var Promise = require('bluebird');
+Promise.promisifyAll(fs);
 
 var d = new Date();
 d = d.toLocaleDateString();
@@ -13,109 +11,80 @@ d = d.toLocaleDateString();
 var input = process.env.INPUT;
 
 if (!input) {
-    input = './../storage/names.json';
+    input = './../storage/names1.json';
 }
 
-// leggo file json e lo salvo in una variabile
-// quindi ho un json con tutti i nomi
-var getFilePizza = function() {
-    return new Promise(function(resolve, reject) {
-        console.log('FILE CARICATO ------>  ' + input);
-        var file = input;
-        jsonfile.readFile(file, function(err, obj) {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(obj);
-            }
+function readFiles() {
+    console.log('LEGGO IL FILE ----------> ' + input);
+    return fs.readFileAsync(input, 'utf8')
+        .then(function(obj) {
+            var objJSON = JSON.parse(obj);
+            return objJSON.names;
         });
-    });
-};
+}
+exports.readFiles = readFiles;
 
-// scrive un file json con contenuto l'oggetto passato alla funzione
-var writeFileUrl = function(info) {
-    var file = './../storage/' + d + '/url/' + info.name + '.json';
-    jsonfile.writeFile(file, info, function(err) {
-        if (err) {
-            console.error('ERROR: ', err);
-        } else {
-            console.log('Il file è stato creato');
-        }
-    });
-};
-
-
-// dato un nome esegue una ricerca tramite le API Bing
-// e ritorna un oggetto con tutti gli url ritornati dalla ricerca
-// che scrive tramite un altre funzione su dei file json
-var getBingUrl = function(word, n, s) {
-    console.log('RICERCA --------------> ', word);
-    Bing.web(word, {
-        top: 10, // Skip first 3 results
-        skip: 50 * s, // Skip first 3 results
-        options: ['DisableLocationDetection', 'EnableHighlighting']
-    }, function(error, res, body) {
-        if (error) {
-            console.error('API BING ERROR --->', error);
-        } else {
-            for (var i = body.d.results.length - 1; i >= 0; i--) {
-                var obj = body.d.results[i];
-                var web = {
-                    'title': obj.Title,
-                    'description': obj.Description,
-                    'url': obj.Url
-                };
-                n.web.push(web);
-                if (i === 0) {
-                    if (s !== 0) {
-                        getBingUrl(word, n, s - 1);
-                    } else {
-                        console.log('FINE RICERCA --------------> ', n.name);
-                        writeFileUrl(n);
+var getBingUrl = function(word, n, skip, timer) {
+    return new Promise(function(resolve, reject) {
+        setTimeout(function() {
+            console.log('AVVIO RICERCA PER -----------> ' + word + ', SKIP ---> ' + skip);
+            Bing.web(word, {
+                top: 50,
+                skip: 50 * skip,
+                options: ['DisableLocationDetection', 'EnableHighlighting']
+            }, function(error, res, body) {
+                if (error) {
+                    resolve(console.error('API BING ERROR --->', error));
+                } else {
+                    for (var i = body.d.results.length - 1; i >= 0; i--) {
+                        var obj = body.d.results[i];
+                        var web = {
+                            'title': obj.Title,
+                            'description': obj.Description,
+                            'url': obj.Url
+                        };
+                        resolve(n.web.push(web));
+                        if (i === 0) {
+                            console.log('FINE RICERCA --------------> ' + n.name + ', TIMER ---> ' + timer / 1000 + 's');
+                        }
                     }
                 }
-            }
-
-        }
+            });
+        }, timer);
     });
 };
 
-getFilePizza()
-    .then(function(array) {
-            var list = array.names;
-            Promise.each(list, function(element, index) {
-                    console.log('AVVIO RICERCA...' + index);
-                    var n = {
-                        'name': element,
-                        'web': []
-                    };
-                    // per averne circa 600 va messo 6
-                    getBingUrl(element, n, 0);
-                })
-                .then(function(allItems) {
-                    console.dir(allItems);
-                });
-        },
-        function(error) {
-            console.log('INSERISCI IL PATH DEL FILE INPUT (json)');
-        });
+function writeFileJSON(data) {
+    var pathNextFile = path.join('./../storage/', d, '/url/', data.name + '.json');
+    console.log('CREO FILE -------->', pathNextFile);
+    var dataJSON = JSON.stringify(data);
+    // var pathHtmlFile = './../storage/' + d + '/html/' + web.name + '/' + web.name + '_page' + web.page + '.html';
+    return fs.writeFile(pathNextFile, dataJSON);
+}
+exports.writeFileJSON = writeFileJSON;
 
 
+function boh(element) {
+    return new Promise(function(resolve, reject) {
+        var n = {
+            'name': element,
+            'web': []
+        };
+        Promise.all([
+                getBingUrl(element, n, 0, 10000),
+                getBingUrl(element, n, 1, 20000),
+                getBingUrl(element, n, 2, 30000),
+                getBingUrl(element, n, 3, 40000),
+                getBingUrl(element, n, 4, 50000),
+                getBingUrl(element, n, 5, 60000)
+            ])
+            .then(value => {
+                resolve(writeFileJSON(n));
+            });
+    });
+}
+exports.boh = boh;
 
-// getFilePizza()
-//     .then(function(array) {
-//             console.log('AVVIO RICERCA...');
-//             var list = array.names;
-//             // for (var i = 0; i < list.length; i++) {
-//             for (var i = 0; i < 1; i++) {
-//                 var n = {
-//                     'name': list[i],
-//                     'web': []
-//                 };
-//                 // per averne circa 300 va messo 6
-//                 getBingUrl(list[i], n, 1);
-//             }
-//         },
-//         function(error) {
-//             console.log('INSERISCI IL PATH DEL FILE INPUT (json)');
-//         });
+readFiles()
+    .then(console.log('<---------- INIZIO DELLA RICERCA DEGLI URL ---------->'))
+    .map(res => boh(res), { concurrency: 1 });
