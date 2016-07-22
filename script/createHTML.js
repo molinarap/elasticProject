@@ -1,4 +1,5 @@
 var request = require("request");
+var cheerio = require('cheerio');
 var util = require('util');
 var fs = require('fs');
 var path = require('path');
@@ -17,37 +18,63 @@ function readFiles() {
 }
 exports.readFiles = readFiles;
 
+function cleanHTML(html) {
+    var $ = cheerio.load(html);
+    // elimino i tag che non contengono informazioni utili
+    $('script, link, br, meta, img').remove();
+    // elimino gli attributi che non contengono informazioni utili
+    $('*').removeAttr('method').html();
+    $('*').removeAttr('action').html();
+    $('*').removeAttr('type').html();
+    $('*').removeAttr('class').html();
+    $('*').removeAttr('href').html();
+    $('*').removeAttr('style').html();
+    var cleanHtml = $.html();
+    return cleanHtml;
+}
+exports.cleanHTML = cleanHTML;
+
 function download(web) {
     return new Promise(function(resolve, reject) {
-        request({
-            url: web.url,
-            rejectUnauthorized: true,
-            strictSSL: false,
-            encoding: 'utf-8',
-            json: true
-        }, function(error, response, body) {
-            var infoPage = {
-                "name": web.name,
-                "title": web.title,
-                "description": web.description,
-                "url": web.url,
-            };
-            var infoPageSting = JSON.stringify(infoPage);
-            if (error) {
-                reject(console.log('ERROR FILE --------> ' + error + ' | ' + web.url));
-            } else {
-                if (response.statusCode === 200) {
-                    var allHml = '<!--INFO' + infoPageSting + 'INFO-->\n' + body;
-                    // var pathHtmlFile = path.join('./../storage/', d, '/html/', web.name, '/', web.name, '_page', web.page, '.html');
-                    var pathHtmlFile = './../storage/' + d + '/html/' + web.name + '/' + web.name + '_page' + web.page + '.html';
-                    resolve(console.log(chalk.blue('WRITE FILE --------> ' + response.statusCode + ' | ' + pathHtmlFile)));
-                    resolve(writeHTMLFile(web, allHml));
+        setTimeout(function() {
+            request({
+                url: web.url,
+                rejectUnauthorized: true,
+                strictSSL: false,
+                encoding: 'utf-8',
+                json: true
+            }, function(error, response, html) {
+                // var cleanHtml;
+                // if (html) {
+                //     cleanHtml = cleanHTML(html);
+                // } else {
+                //     cleanHtml = " ";
+                // }
+                var infoPage = {
+                    "name": web.name,
+                    "title": web.title,
+                    "description": web.description,
+                    "url": web.url,
+                };
+                var infoPageSting = JSON.stringify(infoPage);
+
+                if (error) {
+                    resolve(chalk.red(console.log('ERROR FILE --------> ' + error + ' | ' + web.url)));
                 } else {
-                    reject(chalk.yellow(console.log('ERROR FILE --------> ' + response.statusCode + ' | ' + web.url)));
+                    if (response.statusCode === 200 || response.statusCode === 999) {
+                        var allHml = '<!--INFO' + infoPageSting + 'INFO-->\n' + html;
+                        // var allHml = '<!--INFO' + infoPageSting + 'INFO-->\n' + cleanHtml;
+                        // var pathHtmlFile = path.join('./../storage/', d, '/html/', web.name, '/', web.name, '_page', web.page, '.html');
+                        var pathHtmlFile = './../storage/' + d + '/html/' + web.name + '/' + web.name + '_page' + web.page + '.html';
+                        resolve(console.log(chalk.green('WRITE FILE --------> ' + response.statusCode + ' | ' + pathHtmlFile)));
+                        resolve(writeHTMLFile(web, allHml));
+                    } else {
+                        resolve(chalk.yellow(console.log('ERROR FILE --------> ' + response.statusCode + ' | ' + web.url)));
+                    }
                 }
-            }
-            //return writeHTMLFile(web, allInfo);
-        });
+            });
+        }, 5000);
+
     });
 }
 exports.download = download;
@@ -97,7 +124,8 @@ readFiles()
     .map(file => getFileUrl(file))
     .then(flatPromiseArray)
     // ho un array di oggetti web da cui devo scaricare l'HTML
-    .map(html => download(html))
+    //.each(html => download(html))
+    .map(html => download(html), { concurrency: 10 })
     .catch(err => {
         chalk.red(console.error('ERROOOOOOOOOOOR ------->' + err));
     });
