@@ -1,4 +1,6 @@
 var noodle = require('noodlejs');
+var xpath = require('xpath');
+var dom = require('xmldom').DOMParser;
 
 noodle
     .query({
@@ -16,9 +18,15 @@ noodle
         }
     })
     .then(function(results) {
-        console.log('Info SKU', JSON.stringify(results));
+        var r = JSON.stringify(results);
+        var r2 = results.results[0].results.element[0].toString();
+        var r3 = r2.split('# ');
+        var doc = new dom().parseFromString(r3[1]);
+        var title = xpath.select('span/text()', doc).toString();
+        console.log('Info SKU', title);
     });
 
+//*[@id="pdpMain"]/div[3]/div[2]/div/div[1]/div/div[2]/span
 /*
 "Item# <span itemprop=\"identifier\" content=\"sku:3987456\">3987456</span>"
 
