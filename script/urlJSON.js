@@ -76,7 +76,8 @@ function boh(element) {
                 getBingUrl(element, n, 2, 30000),
                 getBingUrl(element, n, 3, 40000),
                 getBingUrl(element, n, 4, 50000),
-                getBingUrl(element, n, 5, 60000)
+                getBingUrl(element, n, 5, 60000),
+                getBingUrl(element, n, 6, 70000)
             ])
             .then(value => {
                 resolve(writeFileJSON(n));
