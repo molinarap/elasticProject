@@ -1,4 +1,5 @@
-var Bing = require('node-bing-api')({ accKey: 'glv6KgfKGZgMcTBZ2/PWYYgaSuXwcjsvQskVjuRcPSE' });
+// var Bing = require('node-bing-api')({ accKey: 'glv6KgfKGZgMcTBZ2/PWYYgaSuXwcjsvQskVjuRcPSE' });
+var Bing = require('node-bing-api')({ accKey: 'eKeJ5983KZVe4Ga0tveDNre/6MiTiH/Qm/c9F1S8xGI' });
 var jsonfile = require('jsonfile');
 var fs = require('fs');
 var path = require('path');
