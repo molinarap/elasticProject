@@ -11,7 +11,7 @@ d = d.toLocaleDateString();
 var input = process.env.INPUT;
 
 if (!input) {
-    input = './../storage/names1.json';
+    input = './../data/names1.json';
 }
 
 function readFiles() {
