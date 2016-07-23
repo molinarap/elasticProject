@@ -6,7 +6,7 @@ var Promise = require('bluebird');
 Promise.promisifyAll(fs);
 
 var d = new Date();
-d = d.toLocaleDateString();
+d = d.toDateString();
 
 var input = process.env.INPUT;
 

@@ -6,7 +6,7 @@ var path = require('path');
 Promise.promisifyAll(fs);
 
 var d = new Date();
-d = d.toLocaleDateString();
+d = d.toDateString();
 var pathPrevDir = path.join('./../storage/', d, '/url-html/');
 var elasticPath = './../storage/' + d + '/elastic/elastic_' + d + '.json';
 var doc = "";

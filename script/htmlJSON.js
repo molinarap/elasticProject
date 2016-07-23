@@ -5,7 +5,7 @@ var chalk = require('chalk');
 Promise.promisifyAll(fs);
 
 var d = new Date();
-d = d.toLocaleDateString();
+d = d.toDateString();
 var pathPrevDir = path.join('./../storage/', d, '/html/');
 var pathNextDir = path.join('./../storage/', d, '/url-html/');
 
@@ -85,7 +85,7 @@ readDirs()
     .map(name => createFileJson(name))
     .map(d => readFiles(d))
     .then(aggregate)
-    .map(file => getHTML(file))
+    .map(file => getHTML(file), { concurrency: 1 })
     .then(function() {
         writeJSONFile();
     })

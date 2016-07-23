@@ -2,7 +2,7 @@ var Bing = require('node-bing-api')({ accKey: "Avz6XU0BwrFDxpOClR75ahxB7kKyZ8zO8
 var fs = require('fs');
 
 var d = new Date();
-d = d.toLocaleDateString();
+d = d.toDateString();
 
 if (process.env.urlDir) {
     var urlDir = process.env.urlDir;

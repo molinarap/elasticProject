@@ -8,7 +8,7 @@ var Promise = require('bluebird');
 Promise.promisifyAll(fs);
 
 var d = new Date();
-d = d.toLocaleDateString();
+d = d.toDateString();
 var pathPrevDir = path.join('./../storage/', d, '/url/');
 
 // leggo i file nella dir pathPrevDir
