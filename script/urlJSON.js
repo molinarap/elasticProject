@@ -12,7 +12,7 @@ d = d.toDateString();
 var input = process.env.INPUT;
 
 if (!input) {
-    input = './../data/names1.json';
+    input = './../data/names.json';
 }
 
 function readFiles() {
