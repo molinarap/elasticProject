@@ -174,7 +174,7 @@ readFiles()
     .then(flatPromiseArray)
     // ho un array di oggetti web da cui devo scaricare l'HTML
     //.each(html => download(html))
-    .map(html => download(html), { concurrency: 10 })
+    .map(html => download(html), { concurrency: 3 })
     .catch(err => {
         chalk.red(console.error(log_date.toISOString() + ' - ERROOOOOOOOOOOR --->' + err));
     });
