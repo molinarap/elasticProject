@@ -18,28 +18,72 @@ function readFiles() {
 }
 exports.readFiles = readFiles;
 
-function cleanHTML(html) {
-    return new Promise(function(resolve, reject) {
-        if (html) {
-            var $ = cheerio.load(html);
-            // elimino i tag che non contengono informazioni utili
-            $('script, link, br, meta, img').remove();
-            // elimino gli attributi che non contengono informazioni utili
-            $('*').removeAttr('method').html();
-            $('*').removeAttr('action').html();
-            $('*').removeAttr('type').html();
-            $('*').removeAttr('class').html();
-            $('*').removeAttr('href').html();
-            $('*').removeAttr('style').html();
-            var new_html = $.html();
-            console.log(chalk.red('CLEAN HTML FILE.........'));
-            resolve(new_html);
-        } else {
-            resolve("");
-        }
-    });
-}
-exports.cleanHTML = cleanHTML;
+// function cleanHTML(html) {
+//     return new Promise(function(resolve, reject) {
+//         if (html) {
+//             var $ = cheerio.load(html);
+//             // elimino i tag che non contengono informazioni utili
+//             $('script, link, br, meta, img').remove();
+//             // elimino gli attributi che non contengono informazioni utili
+//             $('*').removeAttr('method').html();
+//             $('*').removeAttr('action').html();
+//             $('*').removeAttr('type').html();
+//             $('*').removeAttr('class').html();
+//             $('*').removeAttr('href').html();
+//             $('*').removeAttr('style').html();
+//             var new_html = $.html();
+//             console.log(chalk.red('CLEAN HTML FILE.........'));
+//             resolve(new_html);
+//         } else {
+//             resolve("");
+//         }
+//     });
+// }
+// exports.cleanHTML = cleanHTML;
+
+// function download(web) {
+//     return new Promise(function(resolve, reject) {
+//         setTimeout(function() {
+//             request({
+//                 url: web.url,
+//                 rejectUnauthorized: true,
+//                 strictSSL: false,
+//                 encoding: 'utf-8',
+//                 json: true
+//             }, function(error, response, html) {
+//                 cleanHTML(html)
+//                     .then(function(new_html) {
+//                         var infoPage = {
+//                             "name": web.name,
+//                             "title": web.title,
+//                             "description": web.description,
+//                             "url": web.url,
+//                         };
+//                         var infoPageString = JSON.stringify(infoPage);
+
+//                         if (error) {
+//                             resolve(chalk.red(console.log('ERROR FILE --------> ' + error + ' | ' + web.url)));
+//                         } else {
+//                             if (response.statusCode === 200 || response.statusCode === 999) {
+//                                 //var allHml = '<!--INFO' + infoPageString + 'INFO-->\n' + html;
+//                                 var allHml = '<!--INFO' + infoPageString + 'INFO-->\n' + new_html;
+//                                 // var pathHtmlFile = path.join('./../storage/', d, '/html/', web.name, '/', web.name, '_page', web.page, '.html');
+//                                 var pathHtmlFile = './../storage/' + d + '/html/' + web.name + '/' + web.name + '_page' + web.page + '.html';
+//                                 resolve(console.log(chalk.green('WRITE FILE --------> ' + response.statusCode + ' | ' + pathHtmlFile)));
+//                                 resolve(writeHTMLFile(web, allHml));
+//                             } else {
+//                                 resolve(chalk.yellow(console.log('ERROR FILE --------> ' + response.statusCode + ' | ' + web.url)));
+//                             }
+//                         }
+//                     });
+
+//             });
+//         }, 5000);
+
+//     });
+// }
+// exports.download = download;
+
 
 function download(web) {
     return new Promise(function(resolve, reject) {
@@ -51,31 +95,29 @@ function download(web) {
                 encoding: 'utf-8',
                 json: true
             }, function(error, response, html) {
-                cleanHTML(html)
-                    .then(function(new_html) {
-                        var infoPage = {
-                            "name": web.name,
-                            "title": web.title,
-                            "description": web.description,
-                            "url": web.url,
-                        };
-                        var infoPageSting = JSON.stringify(infoPage);
 
-                        if (error) {
-                            resolve(chalk.red(console.log('ERROR FILE --------> ' + error + ' | ' + web.url)));
-                        } else {
-                            if (response.statusCode === 200 || response.statusCode === 999) {
-                                //var allHml = '<!--INFO' + infoPageSting + 'INFO-->\n' + html;
-                                var allHml = '<!--INFO' + infoPageSting + 'INFO-->\n' + new_html;
-                                // var pathHtmlFile = path.join('./../storage/', d, '/html/', web.name, '/', web.name, '_page', web.page, '.html');
-                                var pathHtmlFile = './../storage/' + d + '/html/' + web.name + '/' + web.name + '_page' + web.page + '.html';
-                                resolve(console.log(chalk.green('WRITE FILE --------> ' + response.statusCode + ' | ' + pathHtmlFile)));
-                                resolve(writeHTMLFile(web, allHml));
-                            } else {
-                                resolve(chalk.yellow(console.log('ERROR FILE --------> ' + response.statusCode + ' | ' + web.url)));
-                            }
-                        }
-                    });
+                var infoPage = {
+                    "name": web.name,
+                    "title": web.title,
+                    "description": web.description,
+                    "url": web.url,
+                };
+                var infoPageString = JSON.stringify(infoPage);
+
+                if (error) {
+                    resolve(chalk.red(console.log('ERROR FILE --------> ' + error + ' | ' + web.url)));
+                } else {
+                    if (response.statusCode === 200 || response.statusCode === 999) {
+                        var allHml = '<!--INFO' + infoPageString + 'INFO-->\n' + html;
+                        //var allHml = '<!--INFO' + infoPageString + 'INFO-->\n' + new_html;
+                        // var pathHtmlFile = path.join('./../storage/', d, '/html/', web.name, '/', web.name, '_page', web.page, '.html');
+                        var pathHtmlFile = './../storage/' + d + '/html/' + web.name + '/' + web.name + '_page' + web.page + '.html';
+                        resolve(console.log(chalk.green('WRITE FILE --------> ' + response.statusCode + ' | ' + pathHtmlFile)));
+                        resolve(writeHTMLFile(web, allHml));
+                    } else {
+                        resolve(chalk.yellow(console.log('ERROR FILE --------> ' + response.statusCode + ' | ' + web.url)));
+                    }
+                }
 
             });
         }, 5000);
