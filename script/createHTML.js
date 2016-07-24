@@ -8,6 +8,7 @@ var Promise = require('bluebird');
 Promise.promisifyAll(fs);
 
 var d = new Date();
+var log_date = new Date();
 d = d.toDateString();
 var pathPrevDir = path.join('./../storage/', d, '/url/');
 
@@ -62,17 +63,17 @@ exports.readFiles = readFiles;
 //                         var infoPageString = JSON.stringify(infoPage);
 
 //                         if (error) {
-//                             resolve(chalk.red(console.log('ERROR FILE --------> ' + error + ' | ' + web.url)));
+//resolve(chalk.red(console.log(log_date.toISOString()+' - ERROR FILE --------> ' + error + ' | ' + web.url)));
 //                         } else {
 //                             if (response.statusCode === 200 || response.statusCode === 999) {
 //                                 //var allHml = '<!--INFO' + infoPageString + 'INFO-->\n' + html;
 //                                 var allHml = '<!--INFO' + infoPageString + 'INFO-->\n' + new_html;
 //                                 // var pathHtmlFile = path.join('./../storage/', d, '/html/', web.name, '/', web.name, '_page', web.page, '.html');
 //                                 var pathHtmlFile = './../storage/' + d + '/html/' + web.name + '/' + web.name + '_page' + web.page + '.html';
-//                                 resolve(console.log(chalk.green('WRITE FILE --------> ' + response.statusCode + ' | ' + pathHtmlFile)));
+//resolve(console.log(chalk.green(log_date.toISOString()+' - WRITE FILE ---> ' + response.statusCode + ' | ' + pathHtmlFile)));
 //                                 resolve(writeHTMLFile(web, allHml));
 //                             } else {
-//                                 resolve(chalk.yellow(console.log('ERROR FILE --------> ' + response.statusCode + ' | ' + web.url)));
+//                       resolve(chalk.yellow(console.log(log_date.toISOString()+' - ERROR FILE ---> ' + response.statusCode + ' | ' + web.url)));
 //                             }
 //                         }
 //                     });
@@ -105,17 +106,17 @@ function download(web) {
                 var infoPageString = JSON.stringify(infoPage);
 
                 if (error) {
-                    resolve(chalk.red(console.log('ERROR FILE --------> ' + error + ' | ' + web.url)));
+                    resolve(chalk.red(console.log(log_date.toISOString() + ' - ERROR FILE --------> ' + error + ' | ' + web.url)));
                 } else {
                     if (response.statusCode === 200 || response.statusCode === 999) {
                         var allHml = '<!--INFO' + infoPageString + 'INFO-->\n' + html;
                         //var allHml = '<!--INFO' + infoPageString + 'INFO-->\n' + new_html;
                         // var pathHtmlFile = path.join('./../storage/', d, '/html/', web.name, '/', web.name, '_page', web.page, '.html');
                         var pathHtmlFile = './../storage/' + d + '/html/' + web.name + '/' + web.name + '_page' + web.page + '.html';
-                        resolve(console.log(chalk.green('WRITE FILE --------> ' + response.statusCode + ' | ' + pathHtmlFile)));
+                        resolve(console.log(chalk.green(log_date.toISOString() + ' - WRITE FILE ---> ' + response.statusCode + ' | ' + pathHtmlFile)));
                         resolve(writeHTMLFile(web, allHml));
                     } else {
-                        resolve(chalk.yellow(console.log('ERROR FILE --------> ' + response.statusCode + ' | ' + web.url)));
+                        resolve(chalk.yellow(console.log(log_date.toISOString() + ' - ERROR FILE ---> ' + response.statusCode + ' | ' + web.url)));
                     }
                 }
 
@@ -174,5 +175,5 @@ readFiles()
     //.each(html => download(html))
     .map(html => download(html), { concurrency: 10 })
     .catch(err => {
-        chalk.red(console.error('ERROOOOOOOOOOOR ------->' + err));
+        chalk.red(console.error(log_date.toISOString() + ' - ERROOOOOOOOOOOR --->' + err));
     });
