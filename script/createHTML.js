@@ -54,29 +54,29 @@ function download(web) {
                 if (error) {
                     resolve(chalk.red(console.log(new Date().toISOString() + ' - ERROR REQUEST --------> ' + error + ' | ' + web.url)));
                 } else {
-                    cleanHTML(html)
-                        .then(function(new_html) {
-                            var titleRegex = new RegExp('(?![\x00-\x7F]|[\xC0-\xDF][\x80-\xBF]|[\xE0-\xEF][\x80-\xBF]{2}|[\xF0-\xF7][\x80-\xBF]{3})', 'g');
-                            var new_title = web.title.match(titleRegex);
-                            var infoPage = {
-                                "name": web.name,
-                                "title": new_title,
-                                "description": web.description,
-                                "url": web.url,
-                            };
-                            var infoPageString = JSON.stringify(infoPage);
-
-                            if (response.statusCode === 200 || response.statusCode === 999) {
+                    if (response.statusCode === 200 || response.statusCode === 999) {
+                        cleanHTML(html)
+                            .then(function(new_html) {
+                                var titleRegex = new RegExp('(?![\x00-\x7F]|[\xC0-\xDF][\x80-\xBF]|[\xE0-\xEF][\x80-\xBF]{2}|[\xF0-\xF7][\x80-\xBF]{3})', 'g');
+                                var new_title = web.title.match(titleRegex);
+                                var infoPage = {
+                                    "name": web.name,
+                                    "title": new_title,
+                                    "description": web.description,
+                                    "url": web.url,
+                                };
+                                var infoPageString = JSON.stringify(infoPage);
                                 //var allHml = '<!--INFO' + infoPageString + 'INFO-->\n' + html;
                                 var allHml = '<!--INFO' + infoPageString + 'INFO-->\n' + new_html;
                                 // var pathHtmlFile = path.join('./../storage/', d, '/html/', web.name, '/', web.name, '_page', web.page, '.html');
                                 var pathHtmlFile = './../storage/' + d + '/html/' + web.name + '/' + web.name + '_page' + web.page + '.html';
                                 resolve(console.log(chalk.green(new Date().toISOString() + ' - WRITE FILE ---> ' + response.statusCode + ' | ' + pathHtmlFile)));
                                 resolve(writeHTMLFile(web, allHml));
-                            } else {
-                                resolve(chalk.red(console.log(new Date().toISOString() + ' - ERROR FILE ---> ' + response.statusCode + ' | ' + web.url)));
-                            }
-                        });
+
+                            });
+                    } else {
+                        resolve(chalk.red(console.log(new Date().toISOString() + ' - ERROR FILE ---> ' + response.statusCode + ' | ' + web.url)));
+                    }
                 }
 
             });
@@ -175,5 +175,5 @@ readFiles()
     //.each(html => download(html))
     .map(html => download(html), { concurrency: 3 })
     .catch(err => {
-        chalk.red(console.error(new Date().toISOString() + ' - ERROOOOOOOOOOOR --->' + err));
+        chalk.red(console.error(new Date().toISOString() + ' - ERROR PROMISE --->' + err));
     });
