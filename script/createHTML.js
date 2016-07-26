@@ -41,9 +41,13 @@ function cleanHTML(html) {
 }
 exports.cleanHTML = cleanHTML;
 
+var cont = 0;
+
 function download(web) {
     return new Promise(function(resolve, reject) {
         setTimeout(function() {
+            cont = cont + 1;
+            console.log(chalk.magenta(new Date().toISOString() + ' - CONTATORE --------> ' + cont));
             request({
                 url: web.url,
                 rejectUnauthorized: true,
@@ -52,7 +56,7 @@ function download(web) {
                 json: true
             }, function(error, response, html) {
                 if (error) {
-                    resolve(chalk.red(console.log(new Date().toISOString() + ' - ERROR REQUEST --------> ' + error + ' | ' + web.url)));
+                    resolve(console.log(chalk.red(new Date().toISOString() + ' - ERROR REQUEST --------> ' + error + ' | ' + web.url)));
                 } else {
                     if (response.statusCode === 200 || response.statusCode === 999) {
                         cleanHTML(html)
@@ -75,7 +79,7 @@ function download(web) {
 
                             });
                     } else {
-                        resolve(chalk.red(console.log(new Date().toISOString() + ' - ERROR FILE ---> ' + response.statusCode + ' | ' + web.url)));
+                        resolve(console.log(chalk.red(new Date().toISOString() + ' - ERROR FILE ---> ' + response.statusCode + ' | ' + web.url)));
                     }
                 }
 
@@ -173,7 +177,7 @@ readFiles()
     .then(flatPromiseArray)
     // ho un array di oggetti web da cui devo scaricare l'HTML
     //.each(html => download(html))
-    .map(html => download(html), { concurrency: 3 })
+    .map(html => download(html), { concurrency: 1 })
     .catch(err => {
         chalk.red(console.error(new Date().toISOString() + ' - ERROR PROMISE --->' + err));
     });
