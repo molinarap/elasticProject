@@ -47,6 +47,7 @@ function download(web) {
     return new Promise(function(resolve, reject) {
         setTimeout(function() {
             cont = cont + 1;
+            console.log(chalk.white.bgYellow(new Date().toISOString() + ' - NOME --------> ' + web.name));
             console.log(chalk.magenta(new Date().toISOString() + ' - CONTATORE --------> ' + cont));
             request({
                 url: web.url,
