@@ -8,7 +8,6 @@ var Promise = require('bluebird');
 Promise.promisifyAll(fs);
 
 var d = new Date();
-var log_date = new Date();
 d = d.toDateString();
 var pathPrevDir = path.join('./../storage/', d, '/url/');
 
@@ -52,33 +51,33 @@ function download(web) {
                 encoding: 'utf-8',
                 json: true
             }, function(error, response, html) {
-                cleanHTML(html)
-                    .then(function(new_html) {
-                        var titleRegex = new RegExp('(?![\x00-\x7F]|[\xC0-\xDF][\x80-\xBF]|[\xE0-\xEF][\x80-\xBF]{2}|[\xF0-\xF7][\x80-\xBF]{3})', 'g');
-                        var new_title = web.title.match(titleRegex);
-                        var infoPage = {
-                            "name": web.name,
-                            "title": new_title,
-                            "description": web.description,
-                            "url": web.url,
-                        };
-                        var infoPageString = JSON.stringify(infoPage);
+                if (error) {
+                    resolve(chalk.red(console.log(new Date().toISOString() + ' - ERROR REQUEST --------> ' + error + ' | ' + web.url)));
+                } else {
+                    cleanHTML(html)
+                        .then(function(new_html) {
+                            var titleRegex = new RegExp('(?![\x00-\x7F]|[\xC0-\xDF][\x80-\xBF]|[\xE0-\xEF][\x80-\xBF]{2}|[\xF0-\xF7][\x80-\xBF]{3})', 'g');
+                            var new_title = web.title.match(titleRegex);
+                            var infoPage = {
+                                "name": web.name,
+                                "title": new_title,
+                                "description": web.description,
+                                "url": web.url,
+                            };
+                            var infoPageString = JSON.stringify(infoPage);
 
-                        if (error) {
-                            resolve(chalk.red(console.log(log_date.toISOString() + ' - ERROR FILE --------> ' + error + ' | ' + web.url)));
-                        } else {
                             if (response.statusCode === 200 || response.statusCode === 999) {
                                 //var allHml = '<!--INFO' + infoPageString + 'INFO-->\n' + html;
                                 var allHml = '<!--INFO' + infoPageString + 'INFO-->\n' + new_html;
                                 // var pathHtmlFile = path.join('./../storage/', d, '/html/', web.name, '/', web.name, '_page', web.page, '.html');
                                 var pathHtmlFile = './../storage/' + d + '/html/' + web.name + '/' + web.name + '_page' + web.page + '.html';
-                                resolve(console.log(chalk.green(log_date.toISOString() + ' - WRITE FILE ---> ' + response.statusCode + ' | ' + pathHtmlFile)));
+                                resolve(console.log(chalk.green(new Date().toISOString() + ' - WRITE FILE ---> ' + response.statusCode + ' | ' + pathHtmlFile)));
                                 resolve(writeHTMLFile(web, allHml));
                             } else {
-                                resolve(chalk.red(console.log(log_date.toISOString() + ' - ERROR FILE ---> ' + response.statusCode + ' | ' + web.url)));
+                                resolve(chalk.red(console.log(new Date().toISOString() + ' - ERROR FILE ---> ' + response.statusCode + ' | ' + web.url)));
                             }
-                        }
-                    });
+                        });
+                }
 
             });
         }, 5000);
@@ -107,17 +106,17 @@ exports.download = download;
 //                 var infoPageString = JSON.stringify(infoPage);
 
 //                 if (error) {
-//                     resolve(chalk.red(console.log(log_date.toISOString() + ' - ERROR FILE --------> ' + error + ' | ' + web.url)));
+//                     resolve(chalk.red(console.log(new Date().toISOString() + ' - ERROR FILE --------> ' + error + ' | ' + web.url)));
 //                 } else {
 //                     if (response.statusCode === 200 || response.statusCode === 999) {
 //                         var allHml = '<!--INFO' + infoPageString + 'INFO-->\n' + html;
 //                         //var allHml = '<!--INFO' + infoPageString + 'INFO-->\n' + new_html;
 //                         // var pathHtmlFile = path.join('./../storage/', d, '/html/', web.name, '/', web.name, '_page', web.page, '.html');
 //                         var pathHtmlFile = './../storage/' + d + '/html/' + web.name + '/' + web.name + '_page' + web.page + '.html';
-//                         resolve(console.log(chalk.green(log_date.toISOString() + ' - WRITE FILE ---> ' + response.statusCode + ' | ' + pathHtmlFile)));
+//                         resolve(console.log(chalk.green(new Date().toISOString() + ' - WRITE FILE ---> ' + response.statusCode + ' | ' + pathHtmlFile)));
 //                         resolve(writeHTMLFile(web, allHml));
 //                     } else {
-//                         resolve(chalk.yellow(console.log(log_date.toISOString() + ' - ERROR FILE ---> ' + response.statusCode + ' | ' + web.url)));
+//                         resolve(chalk.yellow(console.log(new Date().toISOString() + ' - ERROR FILE ---> ' + response.statusCode + ' | ' + web.url)));
 //                     }
 //                 }
 
@@ -176,5 +175,5 @@ readFiles()
     //.each(html => download(html))
     .map(html => download(html), { concurrency: 3 })
     .catch(err => {
-        chalk.red(console.error(log_date.toISOString() + ' - ERROOOOOOOOOOOR --->' + err));
+        chalk.red(console.error(new Date().toISOString() + ' - ERROOOOOOOOOOOR --->' + err));
     });
