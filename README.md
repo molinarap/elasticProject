@@ -47,3 +47,33 @@ curl -s -XPOST localhost:9200/[_index]/[_type]/_bulk --data-binary "@[nome file]
 per cancellare
 curl -XDELETE 'http://localhost:9200/[_index]/'
 
+
+**REGEX PHONE**
+'((\+)?\b(\d{0,4})((( |\-|\\)?(\d{1,5})){7})\b|((\d{3})(\.\d{2,3}){3}))'
+
+- 0828 98 28 39
+- 089 72 48 20
+- 06 98 28 39
+- 06 98\28\39
+- 06-98-28-39
+- +39 06 98 28 39
+- +39 06 36881
+- 800.00.00.00
+- 800.000.000.000
+- 3389598175
+- +393389598175
+- +39 338 95 98 175
+- +39 338 959 8175
+- 800000000000
+- 5776666778
+- 111111    NON MATCHATA
+- -0.5 1 0 1.8 0    NON MATCHATA
+- 32    NON MATCHATA
+- 102.3 19.8 102.3 19.2    NON MATCHATA
+- 1996-2013    MATCHATA MA NON DOVREBBE
+
+**REGEX EMAIL**
+'(([\w][\w|\.|\-]{2,40}\@)(\w{2,20}.)*.(\w{2,6}))'
+
+**REGEX NAME SURNAME**
+'([A-Z]{1}[A-Za-z]{2,10}( [A-Z]{1}[A-Za-z]{1,10}){1,4})'

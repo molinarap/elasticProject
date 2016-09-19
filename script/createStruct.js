@@ -16,6 +16,7 @@ var paths = [
     'html/',
     'url/',
     'url-html/',
+    'json-info/',
 ];
 
 

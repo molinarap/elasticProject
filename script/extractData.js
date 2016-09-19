@@ -1,30 +1,85 @@
 var Promise = require('bluebird');
 var cheerio = require('cheerio');
 var chalk = require('chalk');
+var path = require('path');
 var request = require('request');
 var watson = require('watson-developer-cloud');
 var alchemy_language = watson.alchemy_language({
-    api_key: '7acc071e01a374142afe6dc1fb776bd202593306'
+    api_key: 'd09d5dd4a7f94f2a0fa4f3cbda63bf3bb8695227'
 });
 
-var url1 = 'https://www.semanticscholar.org/paper/Effects-of-pre-shipping-marbofloxacin-ENDO-TSUCHIYA/4d433f4652f3de5115a429f81b33d53a65993312';
-var url = 'https://www.tim.it/assistenza/i-consumatori/info-consumatori-fisso/contatti';
-var word = 'News';
+var fs = require('fs');
+Promise.promisifyAll(fs);
 
+var d = new Date();
+d = d.toDateString();
+var cont = 0;
 
-var parameters = {
-    extract: 'entities',
-    sentiment: 0,
-    //maxRetrieve: 1,
-    url: url1
-};
+// var url0 = 'https://www.semanticscholar.org/paper/Effects-of-pre-shipping-marbofloxacin-ENDO-TSUCHIYA/4d433f4652f3de5115a429f81b33d53a65993312';
+// var url1 = 'http://www.paginebianche.it/ricerca?qs=molinara&dv=';
+// var url2 = 'https://www.tutored.me/#/contacts';
+
+var phoneRegex = '((\\+)?\\b(\\d{0,4})((( |\\-|\\\\)?(\\d{1,5})){7})\\b|((\\d{3})(\\.\\d{2,3}){3}))';
+var nameRegex = '([A-Z]{1}[A-Za-z]{2,10}( [A-Z]{1}[A-Za-z]{1,10}){1,4})';
+var emailRegex = '(([\\w][\\w|\\.|\\-]{2,40}\\@)(\\w{2,20}.)*.(\\w{2,6}))';
+
+var namesList = './../data/ita-names.json';
+var pathPrevDir = path.join('./../storage/', d, '/url/');
+
+function readUrlDirs() {
+    return fs.readdirAsync(pathPrevDir);
+}
+exports.readUrlDirs = readUrlDirs;
+
+function createFolder(allPath) {
+    var onlyName = allPath.split('.json')[0];
+    var pathNextDir = path.join('./../storage/', d, '/json-info/', onlyName);
+    return fs.statAsync(pathNextDir).return(allPath)
+        .catch(err => fs.mkdirAsync(pathNextDir));
+}
+exports.createFolder = createFolder;
+
+function readNamesFiles() {
+    console.log('LEGGO IL FILE ----------> ' + namesList);
+    return fs.readFileAsync(namesList, 'utf8')
+        .then(function(obj) {
+            var objJSON = JSON.parse(obj);
+            namesList = objJSON.names;
+        });
+}
+exports.readNamesFiles = readNamesFiles;
+
+function getFileUrl(filePath) {
+    var jsonFile = path.join(pathPrevDir, filePath);
+    return fs.readFileAsync(jsonFile, 'utf8')
+        .then(JSON.parse)
+        .then(jsonData => {
+            return jsonData.web.map(function(webObj, index) {
+                return {
+                    name: jsonData.name,
+                    page: index,
+                    url: webObj.url,
+                    description: webObj.description,
+                    title: webObj.title
+                };
+            });
+        });
+}
+exports.getFileUrl = getFileUrl;
+
+function flatPromiseArray(nestedArray) {
+    return nestedArray.reduce(function(previousVal, currentVal) {
+        return previousVal.concat(currentVal);
+    }, []); // <= questo diventa previousVal alla prima iterazione
+}
+exports.flatPromiseArray = flatPromiseArray;
 
 function cleanHTML(html) {
     return new Promise(function(resolve, reject) {
         if (html) {
             var $ = cheerio.load(html);
             // elimino i tag che non contengono informazioni utili
-            $('script, link, br, meta, img').remove();
+            $('script, link, br, img, style, svg').remove();
             // elimino gli attributi che non contengono informazioni utili
             $('*').removeAttr('method').html();
             $('*').removeAttr('action').html();
@@ -42,9 +97,124 @@ function cleanHTML(html) {
 }
 exports.cleanHTML = cleanHTML;
 
-function alchemyData(html) {
+function matchRegex(html, regex) {
+    var stringHTML = html.toString();
+    var rgx = new RegExp('(' + regex + ')', 'g');
+    return stringHTML.match(rgx);
+}
+exports.matchRegex = matchRegex;
+
+function regexApply(html) {
     return new Promise((resolve, reject) => {
-        alchemy_language.combined(parameters, function(err, response) {
+        var allPhones = matchRegex(html, phoneRegex);
+        var allNames = matchRegex(html, nameRegex);
+        var allEmails = matchRegex(html, emailRegex);
+        var cleanNames = [];
+        var allInfo = {
+            'tel': allPhones,
+            'dirtyName': allNames,
+            'email': allEmails
+        };
+        resolve(allInfo);
+    });
+}
+exports.regexApply = regexApply;
+
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+}
+exports.capitalizeFirstLetter = capitalizeFirstLetter;
+
+Array.prototype.contains = function(needle) {
+    for (var i in this) {
+        if (this[i] == needle) return true;
+    }
+    return false;
+};
+
+function cleanPeopleName(obj) {
+    var nestedArray = obj.PATTERN.dirtyName;
+    return nestedArray.reduce(function(previousVal, currentVal) {
+        var allNametemp = currentVal.split(' ');
+        allNametemp.forEach(function logArrayElements(element, index) {
+            var capName = capitalizeFirstLetter(element);
+            // if (element === 'Via') {
+            //     console.log(chalk.red(element));
+            // }
+            // if (element === 'Piazza') {
+            //     console.log(chalk.cyan(element));
+            // }
+            if (namesList.contains(capName)) {
+                if (!previousVal.PATTERN.name.contains(currentVal)) {
+                    previousVal.PATTERN.name.push(currentVal);
+                }
+            }
+        });
+        return previousVal;
+    }, {
+        "url": obj.url,
+        "NER": obj.NER,
+        "PATTERN": {
+            'tel': obj.PATTERN.tel,
+            'name': [],
+            'email': obj.PATTERN.email
+        }
+    });
+}
+exports.cleanPeopleName = cleanPeopleName;
+
+function extractRegexData(allInfo) {
+    return new Promise(function(resolve, reject) {
+        setTimeout(function() {
+            cont = cont + 1;
+            console.log(chalk.white.bgYellow(new Date().toISOString() + ' - NOME --------> ' + allInfo.name));
+            console.log(chalk.magenta(new Date().toISOString() + ' - CONTATORE --------> ' + cont));
+            request({
+                url: allInfo.url,
+                rejectUnauthorized: true,
+                strictSSL: false,
+                encoding: 'utf-8',
+                json: true
+            }, function(error, response, html) {
+                if (error) {
+                    resolve(console.log(chalk.red(new Date().toISOString() + ' - ERROR REQUEST --------> ' + error + ' | ' + allInfo.url)));
+                } else {
+                    if (response.statusCode === 200 || response.statusCode === 999 || response.statusCode === 406) {
+                        cleanHTML(html)
+                            .then(regexApply)
+                            .then(values => {
+                                var obj = {
+                                    'url': allInfo.url,
+                                    'NER': {},
+                                    'PATTERN': values
+                                };
+                                return obj;
+                            })
+                            .then(cleanPeopleName)
+                            .then(r1 => {
+                                console.log(chalk.green(new Date().toISOString() + ' - WRITE FILE ---> ' + response.statusCode + ' | ' + allInfo.name));
+                                resolve(writeHTMLFile(allInfo, r1));
+                            });
+
+                    } else {
+                        resolve(console.log(chalk.red(new Date().toISOString() + ' - ERROR FILE ---> ' + response.statusCode + ' | ' + allInfo.url)));
+                    }
+                }
+
+            });
+        }, 5000);
+    });
+}
+exports.extractRegexData = extractRegexData;
+
+function extractAlchemyData(html) {
+    return new Promise((resolve, reject) => {
+        alchemy_language.combined({
+            extract: 'entities',
+            sentiment: 0,
+            // maxRetrieve: 1,
+            url: url1
+        }, function(err, response) {
             if (err)
                 reject(console.log('error:', err));
             else
@@ -52,64 +222,29 @@ function alchemyData(html) {
         });
     });
 }
-exports.alchemyData = alchemyData;
+exports.extractAlchemyData = extractAlchemyData;
 
-function regexData(html) {
-    return new Promise((resolve, reject) => {
-        var cleanHtml = cleanHTML(html);
-        var stringHTML = cleanHtml.toString();
-        var phoneRegex = '(\\d{9,15})|(([+0-9]{1,4})((\\d{7,12})|(\s\\d{5,12})|(\s\\d{3}\s\\d{2}\s\\d{2}\s\\d{3})|(\s\\d{3}\s\\d{3}\s\\d{4})))|(\\d{3}(.\\d{2}){0,3})';
-        var nameRegex = '(([\>.:,;\\-_+\\(\\)|\\t|\\s|\\n|\\r])([A-Z]{1}[a-z]{2,10}\\s))([A-Z]{1}[a-z]{1,10}([\<.:,;\\-_+\\(\\)|\\t|\\s|\\n|\\r]))';
-        var emailRegex = '(([\\w|.|-]{2,40}@)(\\w{2,20}.)?(\\w{2,20}.)?(\\w{2,20}.)(\\w{2,6}))';
-        var finalRegex = new RegExp('(' + nameRegex + ')|(' + emailRegex + ')|(' + phoneRegex + ')', 'g');
-        var matches = stringHTML.match(finalRegex);
-        var cleanNames = [];
-        // matches.forEach(function(entry) {
-        //     // elimino primo e ultimo elemento che non serve
-        //     //var name = entry.substring(1, entry.length - 1);
-        //     cleanNames.push(name);
-        // });
-        resolve(matches);
+function writeHTMLFile(web, data) {
+    var filePath = `./../storage/${d}/json-info/${web.name}/${web.name}_page-${web.page}.json`;
+    return fs.writeFileSync(filePath, JSON.stringify(data));
+}
+exports.writeHTMLFile = writeHTMLFile;
+
+Promise.all([readNamesFiles(readNamesFiles), readUrlDirs()])
+    .then(function(result) {
+        return result[1];
+    })
+    .map(p => createFolder(p))
+    .map(file => getFileUrl(file))
+    .then(flatPromiseArray)
+    //.tap(console.log)
+    .map(r => extractRegexData(r), { concurrency: 10 })
+    .catch(function(e) {
+        console.log("handled the error ------> " + e);
     });
-}
-exports.regexData = regexData;
 
-function extractData(url) {
-    return new Promise((resolve, reject) => {
-        request(url, function(error, response, html) {
-            if (!error && response.statusCode == 200) {
-                cleanHTML(html)
-                    .then(function(new_html) {
-                        Promise.all([regexData(new_html), alchemyData(new_html)])
-                            .then(values => {
-                                console.log(values[0]);
-                            });
-                    });
-            } else {
-                reject(error);
-            }
-        });
-    });
-}
-exports.extractData = extractData;
 
-function flatPromiseArray(nestedArray) {
-    return nestedArray.reduce(function(previousVal, currentVal) {
-        var allNametemp = currentVal.split(' ');
-        var name = allNametemp[0];
-        var surname = allNametemp[1];
-        if (name === word || surname === word) {
-            previousVal.push(currentVal);
-        }
-        return previousVal;
-    }, []); // <= questo diventa previousVal alla prima iterazione
-}
-exports.flatPromiseArray = flatPromiseArray;
-
-//regexData(url).tap(console.log)
-//alchemyData(url).tap(console.log)
-extractData(url).tap(console.log)
-    //.then(flatPromiseArray)
-    // .then(function(r) {
-    //     console.log(r);
-    // });
+// leggo lista di nomi e me la salvo in una variabile globale
+// leggo file nella cartella url
+// per ogni file estraggo le informazioni
+// tutte le informazioni le carico in un array
