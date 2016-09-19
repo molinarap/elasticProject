@@ -23,7 +23,7 @@ function cleanHTML(html) {
         if (html) {
             var $ = cheerio.load(html);
             // elimino i tag che non contengono informazioni utili
-            $('script, link, br, meta, img').remove();
+            $('script, link, br, meta, img, style').remove();
             // elimino gli attributi che non contengono informazioni utili
             $('*').removeAttr('method').html();
             $('*').removeAttr('action').html();
@@ -59,7 +59,7 @@ function download(web) {
                 if (error) {
                     resolve(console.log(chalk.red(new Date().toISOString() + ' - ERROR REQUEST --------> ' + error + ' | ' + web.url)));
                 } else {
-                    if (response.statusCode === 200 || response.statusCode === 999) {
+                    if (response.statusCode === 200 || response.statusCode === 999 || response.statusCode === 406) {
                         cleanHTML(html)
                             .then(function(new_html) {
                                 var titleRegex = new RegExp('(?![\x00-\x7F]|[\xC0-\xDF][\x80-\xBF]|[\xE0-\xEF][\x80-\xBF]{2}|[\xF0-\xF7][\x80-\xBF]{3})', 'g');
@@ -176,9 +176,8 @@ readFiles()
     .map(dir => createFolder(dir))
     .map(file => getFileUrl(file))
     .then(flatPromiseArray)
-    // ho un array di oggetti web da cui devo scaricare l'HTML
     //.each(html => download(html))
-    .map(html => download(html), { concurrency: 5 })
+    .map(html => download(html), { concurrency: 10 })
     .catch(err => {
         chalk.red(console.error(new Date().toISOString() + ' - ERROR PROMISE --->' + err));
     });
