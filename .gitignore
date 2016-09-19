@@ -7,3 +7,4 @@ storage
 
 .vscode/launch.json
 query.js
+data/node.log
