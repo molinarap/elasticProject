@@ -15,10 +15,6 @@ var d = new Date();
 d = d.toDateString();
 var cont = 0;
 
-// var url0 = 'https://www.semanticscholar.org/paper/Effects-of-pre-shipping-marbofloxacin-ENDO-TSUCHIYA/4d433f4652f3de5115a429f81b33d53a65993312';
-// var url1 = 'http://www.paginebianche.it/ricerca?qs=molinara&dv=';
-// var url2 = 'https://www.tutored.me/#/contacts';
-
 var phoneRegex = '((\\+)?\\b(\\d{0,4})((( |\\-|\\\\)?(\\d{1,5})){7})\\b|((\\d{3})(\\.\\d{2,3}){3}))';
 var nameRegex = '([A-Z]{1}[A-Za-z]{2,10}( [A-Z]{1}[A-Za-z]{1,10}){1,4})';
 var emailRegex = '(([\\w][\\w|\\.|\\-]{2,40}\\@)(\\w{2,20}.)*.(\\w{2,6}))';
@@ -97,29 +93,6 @@ function cleanHTML(html) {
 }
 exports.cleanHTML = cleanHTML;
 
-function matchRegex(html, regex) {
-    var stringHTML = html.toString();
-    var rgx = new RegExp('(' + regex + ')', 'g');
-    return stringHTML.match(rgx);
-}
-exports.matchRegex = matchRegex;
-
-function regexApply(html) {
-    return new Promise((resolve, reject) => {
-        var allPhones = matchRegex(html, phoneRegex);
-        var allNames = matchRegex(html, nameRegex);
-        var allEmails = matchRegex(html, emailRegex);
-        var cleanNames = [];
-        var allInfo = {
-            'tel': allPhones,
-            'dirtyName': allNames,
-            'email': allEmails
-        };
-        resolve(allInfo);
-    });
-}
-exports.regexApply = regexApply;
-
 function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
 }
@@ -134,36 +107,45 @@ Array.prototype.contains = function(needle) {
 
 function cleanPeopleName(obj) {
     var nestedArray = obj.PATTERN.dirtyName;
-    return nestedArray.reduce(function(previousVal, currentVal) {
-        var allNametemp = currentVal.split(' ');
-        allNametemp.forEach(function logArrayElements(element, index) {
-            var capName = capitalizeFirstLetter(element);
-            // if (element === 'Via') {
-            //     console.log(chalk.red(element));
-            // }
-            // if (element === 'Piazza') {
-            //     console.log(chalk.cyan(element));
-            // }
-            if (namesList.contains(capName)) {
-                if (!previousVal.PATTERN.name.contains(currentVal)) {
-                    previousVal.PATTERN.name.push(currentVal);
+    if (obj.PATTERN.dirtyName !== [] && obj.PATTERN.dirtyName !== null) {
+        return nestedArray.reduce(function(previousVal, currentVal) {
+            var allNametemp = currentVal.split(' ');
+            allNametemp.forEach(function logArrayElements(element, index) {
+                var capName = capitalizeFirstLetter(element);
+                // if (element === 'Via') {
+                //     console.log(chalk.red(element));
+                // }
+                // if (element === 'Piazza') {
+                //     console.log(chalk.cyan(element));
+                // }
+                if (namesList.contains(capName)) {
+                    if (!previousVal.PATTERN.name.contains(currentVal)) {
+                        previousVal.PATTERN.name.push(currentVal);
+                    }
                 }
+            });
+            return previousVal;
+        }, {
+            "url": obj.url,
+            "NER": obj.NER,
+            "PATTERN": {
+                'tel': obj.PATTERN.tel,
+                'name': [],
+                'email': obj.PATTERN.email
             }
         });
-        return previousVal;
-    }, {
-        "url": obj.url,
-        "NER": obj.NER,
-        "PATTERN": {
-            'tel': obj.PATTERN.tel,
-            'name': [],
-            'email': obj.PATTERN.email
-        }
-    });
+    }
 }
 exports.cleanPeopleName = cleanPeopleName;
 
-function extractRegexData(allInfo) {
+function matchRegex(html, regex) {
+    var stringHTML = html.toString();
+    var rgx = new RegExp('(' + regex + ')', 'g');
+    return stringHTML.match(rgx);
+}
+exports.matchRegex = matchRegex;
+
+function extractAllData(allInfo) {
     return new Promise(function(resolve, reject) {
         setTimeout(function() {
             cont = cont + 1;
@@ -181,12 +163,14 @@ function extractRegexData(allInfo) {
                 } else {
                     if (response.statusCode === 200 || response.statusCode === 999 || response.statusCode === 406) {
                         cleanHTML(html)
-                            .then(regexApply)
+                            .then(html => {
+                                return Promise.all([alchemyData(allInfo.url), regexData(allInfo.url, html)]);
+                            })
                             .then(values => {
                                 var obj = {
                                     'url': allInfo.url,
-                                    'NER': {},
-                                    'PATTERN': values
+                                    'NER': values[0],
+                                    'PATTERN': values[1]
                                 };
                                 return obj;
                             })
@@ -196,37 +180,55 @@ function extractRegexData(allInfo) {
                                 resolve(writeHTMLFile(allInfo, r1));
                             });
 
+
                     } else {
                         resolve(console.log(chalk.red(new Date().toISOString() + ' - ERROR FILE ---> ' + response.statusCode + ' | ' + allInfo.url)));
                     }
                 }
 
             });
-        }, 5000);
+        }, 1000);
     });
 }
-exports.extractRegexData = extractRegexData;
+exports.extractAllData = extractAllData;
 
-function extractAlchemyData(html) {
+function regexData(url, html) {
+    console.log(chalk.green(new Date().toISOString() + ' - REGEX RULE WORKING ---> ' + url));
+    return new Promise((resolve, reject) => {
+        var allPhones = matchRegex(html, phoneRegex);
+        var allNames = matchRegex(html, nameRegex);
+        var allEmails = matchRegex(html, emailRegex);
+        var cleanNames = [];
+        var allInfo = {
+            'tel': allPhones,
+            'dirtyName': allNames,
+            'email': allEmails
+        };
+        resolve(allInfo);
+    });
+}
+exports.regexData = regexData;
+
+function alchemyData(url) {
+    console.log(chalk.green(new Date().toISOString() + ' - ALCHEMY WORKING ON ---> ' + url));
     return new Promise((resolve, reject) => {
         alchemy_language.combined({
             extract: 'entities',
             sentiment: 0,
-            // maxRetrieve: 1,
-            url: url1
+            url: url
         }, function(err, response) {
             if (err)
-                reject(console.log('error:', err));
+                resolve(console.log('error:', err));
             else
-                resolve(console.log(JSON.stringify(response, null, 2)));
+                resolve(response.entities);
         });
     });
 }
-exports.extractAlchemyData = extractAlchemyData;
+exports.alchemyData = alchemyData;
 
 function writeHTMLFile(web, data) {
     var filePath = `./../storage/${d}/json-info/${web.name}/${web.name}_page-${web.page}.json`;
-    return fs.writeFileSync(filePath, JSON.stringify(data));
+    return fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 }
 exports.writeHTMLFile = writeHTMLFile;
 
@@ -238,10 +240,12 @@ Promise.all([readNamesFiles(readNamesFiles), readUrlDirs()])
     .map(file => getFileUrl(file))
     .then(flatPromiseArray)
     //.tap(console.log)
-    .map(r => extractRegexData(r), { concurrency: 10 })
+    .map(r => extractAllData(r), { concurrency: 10 })
     .catch(function(e) {
         console.log("handled the error ------> " + e);
     });
+
+//alchemyData("https://sites.google.com/site/villasaltoparrocchia/home/sant-antonio-abate");
 
 
 // leggo lista di nomi e me la salvo in una variabile globale
