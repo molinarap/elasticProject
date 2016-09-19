@@ -84,7 +84,7 @@ function cleanHTML(html) {
             $('*').removeAttr('href').html();
             $('*').removeAttr('style').html();
             var new_html = $.html();
-            console.log(chalk.red('CLEAN HTML FILE.........'));
+            console.log(chalk.bgWhite.grey('CLEAN HTML FILE.........'));
             resolve(new_html);
         } else {
             resolve("");
@@ -176,13 +176,13 @@ function extractAllData(allInfo) {
                             })
                             .then(cleanPeopleName)
                             .then(r1 => {
-                                console.log(chalk.green(new Date().toISOString() + ' - WRITE FILE ---> ' + response.statusCode + ' | ' + allInfo.name));
+                                console.log(chalk.bgGreen.white(new Date().toISOString() + ' - WRITE FILE ---> ' + response.statusCode + ' | ' + allInfo.name));
                                 resolve(writeHTMLFile(allInfo, r1));
                             });
 
 
                     } else {
-                        resolve(console.log(chalk.red(new Date().toISOString() + ' - ERROR FILE ---> ' + response.statusCode + ' | ' + allInfo.url)));
+                        resolve(console.log(chalk.red(new Date().toISOString() + ' - ERROR extractAllData ---> ' + response.statusCode + ' | ' + allInfo.url)));
                     }
                 }
 
@@ -193,7 +193,7 @@ function extractAllData(allInfo) {
 exports.extractAllData = extractAllData;
 
 function regexData(url, html) {
-    console.log(chalk.green(new Date().toISOString() + ' - REGEX RULE WORKING ---> ' + url));
+    console.log(chalk.bgMagenta.white(new Date().toISOString() + ' - REGEX RULE WORKING ---> ' + url));
     return new Promise((resolve, reject) => {
         var allPhones = matchRegex(html, phoneRegex);
         var allNames = matchRegex(html, nameRegex);
@@ -210,7 +210,7 @@ function regexData(url, html) {
 exports.regexData = regexData;
 
 function alchemyData(url) {
-    console.log(chalk.green(new Date().toISOString() + ' - ALCHEMY WORKING ON ---> ' + url));
+    console.log(chalk.bgBlue.white(new Date().toISOString() + ' - ALCHEMY WORKING ON ---> ' + url));
     return new Promise((resolve, reject) => {
         alchemy_language.combined({
             extract: 'entities',
@@ -218,7 +218,7 @@ function alchemyData(url) {
             url: url
         }, function(err, response) {
             if (err)
-                resolve(console.log('error:', err));
+              resolve(console.log(chalk.red(new Date().toISOString() + ' - ERROR alchemyData ---> ', JSON.stringify(err))));
             else
                 resolve(response.entities);
         });
