@@ -15,12 +15,24 @@ var d = new Date();
 d = d.toDateString();
 var cont = 0;
 
-var phoneRegex = '((\\+)?\\b(\\d{0,4})((( |\\-|\\\\)?(\\d{1,5})){7})\\b|((\\d{3})(\\.\\d{2,3}){3}))';
+var phoneRegex = '[\\+]?((\\d{5,13})|\\d{2,4}([\\-\\\\ ]\\d{2,5}){2,4}|\\d{3}([\\.\\\\ ]\\d{2,3}){3})';
 var nameRegex = '([A-Z]{1}[A-Za-z]{2,10}( [A-Z]{1}[A-Za-z]{1,10}){1,4})';
 var emailRegex = '(([\\w][\\w|\\.|\\-]{2,40}\\@)(\\w{2,20}.)*.(\\w{2,6}))';
 
 var namesList = './../data/ita-names.json';
 var pathPrevDir = path.join('./../storage/', d, '/url/');
+
+var filterName = [
+    'Piazza',
+    'Viale',
+    'Via',
+    'Corso',
+    'Ristorante',
+    'Bar',
+    'San',
+    'Santo',
+    'Santa'
+];
 
 function readUrlDirs() {
     return fs.readdirAsync(pathPrevDir);
@@ -110,20 +122,51 @@ function cleanPeopleName(obj) {
     if (obj.PATTERN.dirtyName !== [] && obj.PATTERN.dirtyName !== null) {
         return nestedArray.reduce(function(previousVal, currentVal) {
             var allNametemp = currentVal.split(' ');
-            allNametemp.forEach(function logArrayElements(element, index) {
-                var capName = capitalizeFirstLetter(element);
-                // if (element === 'Via') {
-                //     console.log(chalk.red(element));
-                // }
-                // if (element === 'Piazza') {
-                //     console.log(chalk.cyan(element));
-                // }
-                if (namesList.contains(capName)) {
-                    if (!previousVal.PATTERN.name.contains(currentVal)) {
-                        previousVal.PATTERN.name.push(currentVal);
+            // CHE SCHIFO, MA DEVO CAPIRE SE FUNZIONA IL RESTO! D:
+            if (allNametemp.length === 2) {
+                var capName0 = capitalizeFirstLetter(allNametemp[0]);
+                var capName1 = capitalizeFirstLetter(allNametemp[1]);
+                if (filterName.contains(capName0) || filterName.contains(capName1)) {
+                    if (!previousVal.PATTERN.dirtyName.contains(currentVal)) {
+                        previousVal.PATTERN.dirtyName.push(currentVal);
+                    }
+                } else {
+                    if (namesList.contains(capName0) || namesList.contains(capName1)) {
+                        if (!previousVal.PATTERN.name.contains(currentVal)) {
+                            previousVal.PATTERN.name.push(currentVal);
+                        }
                     }
                 }
-            });
+            }
+            if (allNametemp.length === 3) {
+                var capName0 = capitalizeFirstLetter(allNametemp[0]);
+                var capName1 = capitalizeFirstLetter(allNametemp[1]);
+                var capName2 = capitalizeFirstLetter(allNametemp[2]);
+                if (filterName.contains(capName0) || filterName.contains(capName1) || filterName.contains(capName2)) {
+                    if (!previousVal.PATTERN.dirtyName.contains(currentVal)) {
+                        previousVal.PATTERN.dirtyName.push(currentVal);
+                    }
+                } else {
+                    if (namesList.contains(capName0) || namesList.contains(capName1) || namesList.contains(capName2)) {
+                        if (!previousVal.PATTERN.name.contains(currentVal)) {
+                            previousVal.PATTERN.name.push(currentVal);
+                        }
+                    }
+                }
+            }
+            // allNametemp.some(function logArrayElements(element, index) {
+            //     var capName = capitalizeFirstLetter(element);
+            //     if (filterName.contains(capName)) {
+            //         console.log(chalk.cyan(currentVal));
+            //         return;
+            //     } else {
+            //         if (namesList.contains(capName)) {
+            //             if (!previousVal.PATTERN.name.contains(currentVal)) {
+            //                 previousVal.PATTERN.name.push(currentVal);
+            //             }
+            //         }
+            //     }
+            // });
             return previousVal;
         }, {
             "url": obj.url,
@@ -131,9 +174,21 @@ function cleanPeopleName(obj) {
             "PATTERN": {
                 'tel': obj.PATTERN.tel,
                 'name': [],
+                'dirtyName': [],
                 'email': obj.PATTERN.email
             }
         });
+    } else {
+        return {
+            "url": obj.url,
+            "NER": obj.NER,
+            "PATTERN": {
+                'tel': obj.PATTERN.tel,
+                'name': [],
+                'dirtyName': [],
+                'email': obj.PATTERN.email
+            }
+        };
     }
 }
 exports.cleanPeopleName = cleanPeopleName;
@@ -167,27 +222,24 @@ function extractAllData(allInfo) {
                                 return Promise.all([alchemyData(allInfo.url), regexData(allInfo.url, html)]);
                             })
                             .then(values => {
-                                var obj = {
+                                return {
                                     'url': allInfo.url,
                                     'NER': values[0],
                                     'PATTERN': values[1]
                                 };
-                                return obj;
                             })
                             .then(cleanPeopleName)
                             .then(r1 => {
                                 console.log(chalk.bgGreen.white(new Date().toISOString() + ' - WRITE FILE ---> ' + response.statusCode + ' | ' + allInfo.name));
                                 resolve(writeHTMLFile(allInfo, r1));
                             });
-
-
                     } else {
                         resolve(console.log(chalk.red(new Date().toISOString() + ' - ERROR extractAllData ---> ' + response.statusCode + ' | ' + allInfo.url)));
                     }
                 }
 
             });
-        }, 1000);
+        }, 3000);
     });
 }
 exports.extractAllData = extractAllData;
@@ -218,7 +270,7 @@ function alchemyData(url) {
             url: url
         }, function(err, response) {
             if (err)
-              resolve(console.log(chalk.red(new Date().toISOString() + ' - ERROR alchemyData ---> ', JSON.stringify(err))));
+                resolve(console.log(chalk.red(new Date().toISOString() + ' - ERROR alchemyData ---> ', JSON.stringify(err))));
             else
                 resolve(response.entities);
         });
@@ -239,16 +291,61 @@ Promise.all([readNamesFiles(readNamesFiles), readUrlDirs()])
     .map(p => createFolder(p))
     .map(file => getFileUrl(file))
     .then(flatPromiseArray)
-    //.tap(console.log)
     .map(r => extractAllData(r), { concurrency: 10 })
     .catch(function(e) {
-        console.log("handled the error ------> " + e);
+        chalk.red(console.error(new Date().toISOString() + ' - ERROR PROMISE --->' + e));
     });
 
-//alchemyData("https://sites.google.com/site/villasaltoparrocchia/home/sant-antonio-abate");
+// TEST
+// var url0 = 'https://www.semanticscholar.org/paper/Effects-of-pre-shipping-marbofloxacin-ENDO-TSUCHIYA/4d433f4652f3de5115a429f81b33d53a65993312';
+// var url1 = 'http://www.paginebianche.it/ricerca?qs=molinara&dv=';
+// var url2 = 'https://www.tutored.me/#/contacts';
 
+// function extractAllData2() {
+//     return new Promise(function(resolve, reject) {
+//         request({
+//             url: url1,
+//             rejectUnauthorized: true,
+//             strictSSL: false,
+//             encoding: 'utf-8',
+//             json: true
+//         }, function(error, response, html) {
+//             if (error) {
+//                 resolve(console.log(chalk.red(new Date().toISOString() + ' - ERROR REQUEST --------> ' + error + ' | ' + url1)));
+//             } else {
+//                 if (response.statusCode === 200 || response.statusCode === 999 || response.statusCode === 406) {
+//                     cleanHTML(html)
+//                         .then(html => {
+//                             return Promise.all([regexData(url1, html)]);
+//                         })
+//                         .then(values => {
+//                             var obj = {
+//                                 'url': url1,
+//                                 'PATTERN': values[0]
+//                             };
+//                             return obj;
+//                         })
+//                         .then(cleanPeopleName)
+//                         .then(r1 => {
+//                             console.log(r1);
+//                             resolve(r1);
+//                         });
+//                 } else {
+//                     resolve(console.log(chalk.red(new Date().toISOString() + ' - ERROR extractAllData2 ---> ' + response.statusCode + ' | ' + url1)));
+//                 }
+//             }
 
-// leggo lista di nomi e me la salvo in una variabile globale
-// leggo file nella cartella url
-// per ogni file estraggo le informazioni
-// tutte le informazioni le carico in un array
+//         });
+//     });
+// }
+// exports.extractAllData2 = extractAllData2;
+
+// Promise.all([readNamesFiles(readNamesFiles)])
+//     .then(function(result) {
+//         return result[0];
+//     })
+//     .then(extractAllData2())
+//     .tap(console.log)
+//     .catch(function(e) {
+//         console.log("handled the error ------> " + e);
+//     });
