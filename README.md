@@ -6,7 +6,6 @@
 - node app.js
 
 **Script Parser**
-
 - node script/createStruct.js ---> crea storage relativo l giorno in cui si esegue lo script. ATTEZIONE se lo si rilancia elimina tutto e ricrea la cartella vuota
 
 - node script/urlJSON.js INPUT=[nome file] ---> scarica con le API di Bing le ricerche relative ai nomi del file iniziale se non viene messo prende in automatico il file *.json dentro /storage
@@ -16,6 +15,8 @@
 - node script/htmlJSON.js ---> prende ogni file HTML, lo pulisce e lo mette all'interno di un file JSON insieme a tutti gli altri file relativi a un nome
 
 - node script/elasticJSON.js ---> prende i file JSON con all'interno l'HTML e crea un file JSON per esegui il bulk delle informazioni in elastic search
+
+- node script/extractData.js ---> prende gli url scaricati precedentemente e analizza l'html estraendo informazioni tramite regex e Alchemy
 
 **Script creazione struttura**
 

@@ -5,8 +5,17 @@ var path = require('path');
 var request = require('request');
 var watson = require('watson-developer-cloud');
 var alchemy_language = watson.alchemy_language({
-    api_key: 'd09d5dd4a7f94f2a0fa4f3cbda63bf3bb8695227'
+    api_key: 'd190e78d1e52b42b1bb6c5727d65cfd57c810f0e'
 });
+
+// paolo@tutored.it d09d5dd4a7f94f2a0fa4f3cbda63bf3bb8695227
+// info@haiteku.it d190e78d1e52b42b1bb6c5727d65cfd57c810f0e
+// paolo.molinara@haiteku.it dcd350a6a24c52c59636c7c05853b7bd6984a94a
+// eli108@hotmail.it 37ccecf84ea70d056fde7d7bfce842c98e2966d7
+// molinarae@gmail.com 8db2fc81b70b4a96637876dca95f81a23e49d63c
+// PAO.MOLINARA@stud.uniroma3.it f1a76cba64ac630815007319fcd4a317af86ef96
+// prova vale 16b33a4fd59afd691b960f55217b8bb4600bf582
+// 7acc071e01a374142afe6dc1fb776bd202593306
 
 var fs = require('fs');
 Promise.promisifyAll(fs);
@@ -178,18 +187,7 @@ function cleanPeopleName(obj) {
                 'email': obj.PATTERN.email
             }
         });
-    } else {
-        return {
-            "url": obj.url,
-            "NER": obj.NER,
-            "PATTERN": {
-                'tel': obj.PATTERN.tel,
-                'name': [],
-                'dirtyName': [],
-                'email': obj.PATTERN.email
-            }
-        };
-    }
+    } else obj;
 }
 exports.cleanPeopleName = cleanPeopleName;
 
@@ -262,17 +260,18 @@ function regexData(url, html) {
 exports.regexData = regexData;
 
 function alchemyData(url) {
-    console.log(chalk.bgBlue.white(new Date().toISOString() + ' - ALCHEMY WORKING ON ---> ' + url));
     return new Promise((resolve, reject) => {
         alchemy_language.combined({
             extract: 'entities',
             sentiment: 0,
             url: url
         }, function(err, response) {
-            if (err)
+            if (err) {
                 resolve(console.log(chalk.red(new Date().toISOString() + ' - ERROR alchemyData ---> ', JSON.stringify(err))));
-            else
+            } else {
+                console.log(chalk.bgBlue.white(new Date().toISOString() + ' - ALCHEMY WORKING ON ---> ' + url));
                 resolve(response.entities);
+            }
         });
     });
 }
