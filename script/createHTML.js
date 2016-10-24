@@ -62,11 +62,11 @@ function download(web) {
                     if (response.statusCode === 200 || response.statusCode === 999 || response.statusCode === 406) {
                         cleanHTML(html)
                             .then(function(new_html) {
-                                var titleRegex = new RegExp('(?![\x00-\x7F]|[\xC0-\xDF][\x80-\xBF]|[\xE0-\xEF][\x80-\xBF]{2}|[\xF0-\xF7][\x80-\xBF]{3})', 'g');
-                                var new_title = web.title.match(titleRegex);
+                                //var titleRegex = new RegExp('(?![\x00-\x7F]|[\xC0-\xDF][\x80-\xBF]|[\xE0-\xEF][\x80-\xBF]{2}|[\xF0-\xF7][\x80-\xBF]{3})', 'g');
+                                //var new_title = web.title.match(titleRegex);
                                 var infoPage = {
                                     "name": web.name,
-                                    "title": new_title,
+                                    "title": web.title,
                                     "description": web.description,
                                     "url": web.url,
                                 };

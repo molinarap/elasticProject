@@ -1,0 +1,28 @@
+<!DOCTYPE HTML>
+<html lang="it" ng-app="SocialApp" >
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+  <title>Search</title>
+  <!-- Custom Theme files -->
+  <link href="css/style.css" rel="stylesheet" type="text/css" media="all"/>
+  <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+  <!--Google Fonts-->
+
+</head>
+<body>
+
+  <!--search start here-->
+<div class="search">
+  <div class="s-bar">
+    <img src="./images/logo.png" style="margin: 50px 0;">
+     <form action="resultList" method="get">
+      <input type="text" name="query" placeholder="Inserisci il nome" >
+      <input type="hidden" name="page" value="1">
+      <input type="submit"  value="Search"/>
+    </form>
+  </div>
+</div>
+</body>
+</html>

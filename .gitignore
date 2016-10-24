@@ -8,3 +8,5 @@ storage
 .vscode/launch.json
 query.js
 data/node.log
+data/bing-json
+data/pizza-search.key
